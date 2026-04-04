@@ -146,10 +146,12 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   .app-header h1 span{font-size:12px}
 
   /* Toolbar mobile */
-  .main-toolbar{padding:.5rem .75rem;gap:6px}
-  .main-toolbar h2{font-size:13px;flex-basis:100%;margin-bottom:2px}
+  .main-toolbar{padding:.5rem .75rem;gap:6px;flex-wrap:nowrap;overflow-x:auto}
+  .main-toolbar h2{font-size:13px;white-space:nowrap;flex-shrink:0}
   .btn{padding:7px 10px;font-size:12px;gap:4px}
   .btn-sm{padding:5px 8px;font-size:11px}
+  /* Cacher le groupe impression dans la toolbar sur mobile (accessible via l'onglet Export) */
+  .main-toolbar .print-group{display:none}
 
   /* Stats bar mobile */
   .stats-bar{padding:.5rem .75rem;gap:6px}
@@ -175,13 +177,38 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   table.eleves-table{min-width:600px}
   table.eleves-table th,table.eleves-table td{padding:7px 8px;font-size:11px}
 
-  /* Form modal full screen */
-  .form-modal{width:100%;max-height:100vh;height:100vh;border-radius:0;margin:0}
-  .form-overlay{align-items:flex-end}
-  .form-overlay.open{align-items:stretch}
-  .form-body{padding:1rem}
+  /* Form modal full screen — z-index au-dessus de la nav mobile */
+  .form-overlay{z-index:300}
+  .form-overlay.open{align-items:stretch;padding:0}
+  .form-modal{
+    width:100%;height:100dvh;max-height:100dvh;
+    border-radius:0;margin:0;
+    display:flex;flex-direction:column;
+  }
+  /* Header : fixe en haut, ne scroll pas */
+  .form-header{
+    flex-shrink:0;
+    padding:.75rem 1rem;
+    position:static;  /* retire le sticky, c'est le flex qui gère */
+  }
+  /* Body : prend tout l'espace restant et scroll */
+  .form-body{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:.75rem 1rem;
+  }
+  /* Footer : fixe en bas, toujours visible */
+  .form-footer{
+    flex-shrink:0;
+    position:static;  /* retire le sticky */
+    padding:.75rem 1rem;
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + .75rem);
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .form-footer .btn{flex:1;min-width:100px;justify-content:center}
   .form-grid{grid-template-columns:1fr}
-  .form-footer{flex-wrap:wrap}
 
   /* Import tab 1 col */
   #tab-import > div > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
@@ -217,10 +244,30 @@ table.eleves-table tr:hover td{background:var(--n3l)}
     <button class="mnav-btn active" id="mnav-saisie" onclick="showTab('saisie');setMobileNav('saisie')"><span class="mico">✏️</span>Bulletins</button>
     <button class="mnav-btn" id="mnav-import" onclick="showTab('import');setMobileNav('import')"><span class="mico">📂</span>Importer</button>
     <button class="mnav-btn" id="mnav-export" onclick="showTab('export');setMobileNav('export')"><span class="mico">📤</span>Exporter</button>
-    <button class="mnav-btn" onclick="exportAllPDF()"><span class="mico">🗂️</span>PDF</button>
+    <button class="mnav-btn" onclick="toggleMobilePrintMenu()"><span class="mico">🖨️</span>Imprimer</button>
     <button class="mnav-btn" onclick="openForm()"><span class="mico">➕</span>Élève</button>
   </div>
 </nav>
+
+<!-- MOBILE: panneau impression (caché par défaut) -->
+<div id="mobile-print-panel" style="display:none;position:fixed;bottom:70px;left:0;right:0;background:#fff;border-top:2px solid var(--n3);z-index:250;padding:12px 16px;box-shadow:0 -4px 20px rgba(0,0,0,.15)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-size:13px;font-weight:800;color:var(--n3)">🖨️ Impression</span>
+    <button onclick="toggleMobilePrintMenu()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--muted)">✕</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    <button class="btn btn-primary btn-sm" style="flex-direction:column;height:56px;font-size:11px;gap:2px" onclick="toggleMobilePrintMenu();imprimerEleve()">
+      👤<span>Un élève</span>
+    </button>
+    <button class="btn btn-primary btn-sm" style="flex-direction:column;height:56px;font-size:11px;gap:2px" onclick="toggleMobilePrintMenu();imprimerNiveau()">
+      📋<span>Ce niveau</span>
+    </button>
+    <button class="btn btn-gold btn-sm" style="flex-direction:column;height:56px;font-size:11px;gap:2px" onclick="toggleMobilePrintMenu();imprimerTout()">
+      🌐<span>Tout</span>
+    </button>
+  </div>
+  <div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">Pour "Un élève" : appuyez d'abord sur 🖨️ dans la ligne de l'élève</div>
+</div>
 
 <div class="app-body">
   <!-- SIDEBAR -->
@@ -253,8 +300,8 @@ table.eleves-table tr:hover td{background:var(--n3l)}
       <div class="main-toolbar">
         <h2 id="toolbar-title">Niveau 1 — Élèves</h2>
         <button class="btn btn-primary" onclick="openForm()">＋ Nouvel élève</button>
-        <!-- Groupe Impression -->
-        <div style="display:flex;gap:4px;align-items:center;background:var(--n3l);border-radius:8px;padding:3px 6px">
+        <!-- Groupe Impression (caché sur mobile) -->
+        <div class="print-group" style="display:flex;gap:4px;align-items:center;background:var(--n3l);border-radius:8px;padding:3px 6px">
           <span style="font-size:11px;font-weight:700;color:var(--n3);white-space:nowrap">🖨️ Imprimer :</span>
           <button class="btn btn-outline btn-sm" onclick="imprimerNiveau()" title="Imprimer tous les élèves du niveau actif">Ce niveau</button>
           <button class="btn btn-outline btn-sm" onclick="imprimerTout()" title="Imprimer tous les niveaux">Tout</button>
@@ -1112,6 +1159,15 @@ function setMobileNav(tab){
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById(`mnav-${tab}`);
   if(btn) btn.classList.add('active');
+  // Ferme le panneau impression si on change d'onglet
+  const pp=document.getElementById('mobile-print-panel');
+  if(pp) pp.style.display='none';
+}
+
+function toggleMobilePrintMenu(){
+  const pp=document.getElementById('mobile-print-panel');
+  if(!pp) return;
+  pp.style.display = pp.style.display==='none'?'block':'none';
 }
 
 // ── FORM ──────────────────────────────────────────────────
