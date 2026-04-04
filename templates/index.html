@@ -123,10 +123,64 @@ table.eleves-table tr:hover td{background:var(--n3l)}
 .empty-state .icon{font-size:56px}
 .empty-state p{font-size:15px;max-width:320px;line-height:1.6}
 
+/* ── MOBILE NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:200;padding:6px 0 env(safe-area-inset-bottom,6px)}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border:none;background:transparent;cursor:pointer;font-size:10px;font-weight:700;color:var(--muted);border-radius:8px;transition:all .2s;min-width:60px}
+.mnav-btn.active{color:var(--n3)}
+.mnav-btn .mico{font-size:20px;line-height:1}
+.mobile-niv-bar{display:none;position:fixed;top:64px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);z-index:150;padding:8px 12px;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+.mobile-niv-bar .niv-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .app-body{grid-template-columns:1fr}
+  .app-body{grid-template-columns:1fr;padding-bottom:70px}
   .sidebar{display:none}
+  .mobile-nav{display:block}
+  .mobile-niv-bar{display:flex}
+
+  /* Header mobile */
+  .app-header{padding:0 1rem;height:56px}
+  .app-header .logo img{height:38px;width:38px}
+  .app-header h1{font-size:13px}
+  .app-header h1 span{font-size:12px}
+
+  /* Toolbar mobile */
+  .main-toolbar{padding:.5rem .75rem;gap:6px}
+  .main-toolbar h2{font-size:13px;flex-basis:100%;margin-bottom:2px}
+  .btn{padding:7px 10px;font-size:12px;gap:4px}
+  .btn-sm{padding:5px 8px;font-size:11px}
+
+  /* Stats bar mobile */
+  .stats-bar{padding:.5rem .75rem;gap:6px}
+  .stat-card{padding:6px 10px}
+  .stat-card .val{font-size:16px}
+  .stat-card .lbl{font-size:10px}
+
+  /* Main content offset for fixed niv-bar */
+  #tab-saisie{padding-top:52px}
+
+  /* Table horizontally scrollable */
+  .eleves-table-wrap{padding:.75rem;overflow-x:auto}
+  table.eleves-table{min-width:600px}
+  table.eleves-table th,table.eleves-table td{padding:7px 8px;font-size:11px}
+
+  /* Form modal full screen */
+  .form-modal{width:100%;max-height:100vh;height:100vh;border-radius:0;margin:0}
+  .form-overlay{align-items:flex-end}
+  .form-overlay.open{align-items:stretch}
+  .form-body{padding:1rem}
+  .form-grid{grid-template-columns:1fr}
+  .form-footer{flex-wrap:wrap}
+
+  /* Import tab 1 col */
+  #tab-import > div > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  #tab-import{padding:1rem}
+  #tab-export{padding:1rem}
+
+  /* Empty state */
+  .empty-state{padding:2rem 1rem}
+  .empty-state .icon{font-size:40px}
 }
 </style>
 </head>
@@ -139,6 +193,24 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   </div>
   <div style="font-size:12px;opacity:.7">2025-2026</div>
 </header>
+
+<!-- MOBILE: barre de niveaux fixe -->
+<div class="mobile-niv-bar" id="mobile-niv-bar">
+  <button class="niv-btn active" data-niv="1" onclick="setNiveau(1)">🟢 Niv 1 <span class="count-badge" id="mcnt-1">0</span></button>
+  <button class="niv-btn" data-niv="2" onclick="setNiveau(2)">🟣 Niv 2 <span class="count-badge" id="mcnt-2">0</span></button>
+  <button class="niv-btn" data-niv="3" onclick="setNiveau(3)">🔵 Niv 3 <span class="count-badge" id="mcnt-3">0</span></button>
+</div>
+
+<!-- MOBILE: bottom navigation -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-btn active" id="mnav-saisie" onclick="showTab('saisie');setMobileNav('saisie')"><span class="mico">✏️</span>Bulletins</button>
+    <button class="mnav-btn" id="mnav-import" onclick="showTab('import');setMobileNav('import')"><span class="mico">📂</span>Importer</button>
+    <button class="mnav-btn" id="mnav-export" onclick="showTab('export');setMobileNav('export')"><span class="mico">📤</span>Exporter</button>
+    <button class="mnav-btn" onclick="exportAllPDF()"><span class="mico">🗂️</span>PDF</button>
+    <button class="mnav-btn" onclick="openForm()"><span class="mico">➕</span>Élève</button>
+  </div>
+</nav>
 
 <div class="app-body">
   <!-- SIDEBAR -->
@@ -901,6 +973,8 @@ function setNiveau(n){
   state.niveau=n;
   document.querySelectorAll('.niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
   document.getElementById('toolbar-title').textContent=`Niveau ${n} — Élèves`;
+  // Sync mobile niv bar
+  document.querySelectorAll('#mobile-niv-bar .niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
   renderTable();
 }
 
@@ -954,7 +1028,17 @@ function updateStats(){
 }
 
 function updateCounts(){
-  [1,2,3].forEach(n=>{document.getElementById(`cnt-${n}`).textContent=state.eleves[n].length;});
+  [1,2,3].forEach(n=>{
+    document.getElementById(`cnt-${n}`).textContent=state.eleves[n].length;
+    const mc=document.getElementById(`mcnt-${n}`);
+    if(mc) mc.textContent=state.eleves[n].length;
+  });
+}
+
+function setMobileNav(tab){
+  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById(`mnav-${tab}`);
+  if(btn) btn.classList.add('active');
 }
 
 // ── FORM ──────────────────────────────────────────────────
