@@ -1,0 +1,9 @@
+flask
+arabic-reshaper
+python-bidi
+reportlab
+pypdf
+openpyxl
+requests
+gunicorn
+Pillow

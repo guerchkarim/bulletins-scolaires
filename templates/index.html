@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bulletins Scolaires — École Mosquée de Castelsarrasin</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --n1: #2e7d32; --n1l: #e8f5e9; --n1d: #1b5e20;
+  --n2: #6a1b9a; --n2l: #f3e5f5; --n2d: #4a148c;
+  --n3: #1a2e5a; --n3l: #e8eaf6; --n3d: #0d1a38;
+  --gold: #c8a84b; --gold-l: #fff8e1;
+  --bg: #f7f8fc; --card: #ffffff;
+  --text: #1a1a2e; --muted: #64748b;
+  --border: #e2e8f0; --radius: 12px;
+  --shadow: 0 4px 24px rgba(26,46,90,.08);
+  --active: var(--n3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+.app-header{background:linear-gradient(135deg,var(--n3) 0%,#2d4a8a 100%);color:#fff;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+.app-header .logo{display:flex;align-items:center;gap:12px}
+.app-header .logo img{height:52px;width:52px;border-radius:50%;object-fit:contain;background:#fff;padding:3px;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.app-header h1{font-size:18px;font-weight:800;letter-spacing:.3px}
+.app-header h1 span{color:var(--gold);font-family:'Tajawal',sans-serif}
+
+/* ── LAYOUT ── */
+.app-body{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 64px)}
+
+/* ── SIDEBAR ── */
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:8px}
+.sidebar h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:0 8px;margin-bottom:4px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);border:none;background:transparent;width:100%;text-align:left;transition:all .2s}
+.nav-btn:hover{background:var(--n3l);color:var(--n3)}
+.nav-btn.active{background:var(--n3);color:#fff}
+.nav-btn .icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.niveau-selector{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.niv-btn{padding:8px 12px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;text-align:left}
+.niv-btn[data-niv="1"]{background:var(--n1l);color:var(--n1d);border-color:var(--n1l)}
+.niv-btn[data-niv="2"]{background:var(--n2l);color:var(--n2d);border-color:var(--n2l)}
+.niv-btn[data-niv="3"]{background:var(--n3l);color:var(--n3d);border-color:var(--n3l)}
+.niv-btn.active[data-niv="1"]{border-color:var(--n1);background:var(--n1);color:#fff}
+.niv-btn.active[data-niv="2"]{border-color:var(--n2);background:var(--n2);color:#fff}
+.niv-btn.active[data-niv="3"]{border-color:var(--n3);background:var(--n3);color:#fff}
+.divider{height:1px;background:var(--border);margin:8px 0}
+.count-badge{background:var(--gold-l);color:#7a5c0a;border:1px solid var(--gold);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;margin-left:auto}
+
+/* ── MAIN ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.main-toolbar{background:#fff;border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.main-toolbar h2{font-size:16px;font-weight:800;margin-right:auto}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .18s;white-space:nowrap}
+.btn-primary{background:var(--n3);color:#fff}.btn-primary:hover{background:var(--n3d)}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{filter:brightness(.9)}
+.btn-green{background:var(--n1);color:#fff}.btn-green:hover{background:var(--n1d)}
+.btn-purple{background:var(--n2);color:#fff}.btn-purple:hover{background:var(--n2d)}
+.btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border)}.btn-outline:hover{border-color:var(--n3);color:var(--n3)}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* ── ELEVE LIST ── */
+.eleves-panel{flex:1;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.eleves-table-wrap{overflow-y:auto;padding:1rem 1.5rem}
+table.eleves-table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+table.eleves-table thead{position:sticky;top:0;z-index:10}
+table.eleves-table th{background:var(--n3);color:#fff;padding:10px 12px;font-size:12px;font-weight:700;text-align:left;white-space:nowrap}
+table.eleves-table td{padding:9px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+table.eleves-table tr:last-child td{border-bottom:none}
+table.eleves-table tr:hover td{background:var(--n3l)}
+.avg-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.avg-good{background:#dcfce7;color:#166534}
+.avg-mid{background:#fef9c3;color:#854d0e}
+.avg-low{background:#fee2e2;color:#991b1b}
+.action-td{display:flex;gap:6px}
+
+/* ── FORM PANEL ── */
+.form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.form-overlay.open{display:flex}
+.form-modal{background:#fff;border-radius:16px;width:min(900px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.22);display:flex;flex-direction:column}
+.form-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10}
+.form-header h3{font-size:18px;font-weight:800}
+.close-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--border);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.close-btn:hover{background:#e2e8f0;color:var(--text)}
+.form-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.5rem}
+.form-section{background:var(--bg);border-radius:var(--radius);padding:1rem 1.25rem}
+.form-section h4{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.form-group input,.form-group select,.form-group textarea{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;transition:border .2s;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--n3)}
+.note-group{display:grid;grid-template-columns:90px 1fr;gap:.5rem;align-items:start}
+.note-input{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;font-weight:700;text-align:center;outline:none;transition:border .2s}
+.note-input:focus{border-color:var(--gold)}
+.obs-select{border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;outline:none;background:#fff;width:100%}
+.obs-select:focus{border-color:var(--n3)}
+.avg-display{background:var(--gold-l);border:1.5px solid var(--gold);border-radius:8px;padding:8px 12px;text-align:center;font-weight:800;font-size:15px;color:#7a5c0a}
+.form-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+
+/* ── IMPORT PANEL ── */
+.import-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.import-zone:hover,.import-zone.drag{border-color:var(--n3);background:var(--n3l)}
+.import-zone p{color:var(--muted);font-size:14px;margin-top:8px}
+.import-zone .icon-big{font-size:40px;line-height:1}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid #22c55e}
+.toast.error{border-left:4px solid #ef4444}
+
+/* ── STATS ── */
+.stats-bar{display:flex;gap:12px;padding:.75rem 1.5rem;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-card{background:var(--bg);border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:10px}
+.stat-card .val{font-size:20px;font-weight:800}
+.stat-card .lbl{font-size:11px;color:var(--muted);font-weight:600}
+
+/* ── EMPTY STATE ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem;color:var(--muted);text-align:center}
+.empty-state .icon{font-size:56px}
+.empty-state p{font-size:15px;max-width:320px;line-height:1.6}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .app-body{grid-template-columns:1fr}
+  .sidebar{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <img src="/static/logo.png?v=3" alt="logo"/>
+    <h1>Bulletins Scolaires &nbsp;<span>مَدْرَسَةُ مَسْجِدِ كَاسْتِيلْ سَارَزَان</span></h1>
+  </div>
+  <div style="font-size:12px;opacity:.7">2025-2026</div>
+</header>
+
+<div class="app-body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>Navigation</h2>
+    <button class="nav-btn active" onclick="showTab('saisie')"><span class="icon">✏️</span> Saisie des bulletins</button>
+    <button class="nav-btn" onclick="showTab('import')"><span class="icon">📂</span> Importer un fichier</button>
+    <button class="nav-btn" onclick="showTab('export')"><span class="icon">📤</span> Exporter</button>
+
+    <div class="divider"></div>
+    <h2>Niveau actif</h2>
+    <div class="niveau-selector">
+      <button class="niv-btn active" data-niv="1" onclick="setNiveau(1)">🟢 Niveau 1 <span class="count-badge" id="cnt-1">0</span></button>
+      <button class="niv-btn" data-niv="2" onclick="setNiveau(2)">🟣 Niveau 2 <span class="count-badge" id="cnt-2">0</span></button>
+      <button class="niv-btn" data-niv="3" onclick="setNiveau(3)">🔵 Niveau 3 <span class="count-badge" id="cnt-3">0</span></button>
+    </div>
+
+    <div class="divider"></div>
+    <h2>Actions rapides</h2>
+    <button class="nav-btn" onclick="downloadTemplate()"><span class="icon">📋</span> Modèle Excel</button>
+    <button class="nav-btn" onclick="exportAll()"><span class="icon">📊</span> Exporter Excel</button>
+    <button class="nav-btn" onclick="exportAllPDF()"><span class="icon">🗂️</span> Tous les PDF</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SAISIE TAB -->
+    <div id="tab-saisie">
+      <div class="main-toolbar">
+        <h2 id="toolbar-title">Niveau 1 — Élèves</h2>
+        <button class="btn btn-primary" onclick="openForm()">＋ Nouvel élève</button>
+        <button class="btn btn-outline" onclick="exportAllPDF()">⬇ PDF tous</button>
+        <button class="btn btn-gold" onclick="exportAll()">📊 Excel</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAll()" title="Vider la liste">🗑 Vider</button>
+      </div>
+
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-card"><div class="val" id="stat-total">0</div><div class="lbl">Élèves</div></div>
+        <div class="stat-card"><div class="val" id="stat-avg" style="color:var(--gold)">—</div><div class="lbl">Moy. générale</div></div>
+        <div class="stat-card"><div class="val" style="color:var(--n1)" id="stat-good">0</div><div class="lbl">≥ 14/20</div></div>
+        <div class="stat-card"><div class="val" style="color:#ef4444" id="stat-low">0</div><div class="lbl">< 10/20</div></div>
+      </div>
+
+      <div class="eleves-panel">
+        <div class="eleves-table-wrap" id="eleves-table-wrap">
+          <div class="empty-state" id="empty-state">
+            <div class="icon">📝</div>
+            <strong>Aucun élève pour ce niveau</strong>
+            <p>Clique sur <strong>"Nouvel élève"</strong> pour commencer la saisie, ou importe un fichier Excel/JSON.</p>
+          </div>
+          <table class="eleves-table" id="eleves-table" style="display:none">
+            <thead>
+              <tr>
+                <th>#</th><th>Nom</th><th>Classe</th><th>Moy. Arabe</th><th>Moy. Islam.</th><th>Contrôle</th><th>Présence</th><th>Moy. Gén.</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="eleves-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT TAB -->
+    <div id="tab-import" style="display:none;padding:2rem">
+      <h2 style="margin-bottom:1.5rem">Importer des données</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div>
+          <h3 style="margin-bottom:1rem;font-size:15px">📊 Fichier Excel (.xlsx)</h3>
+          <div class="import-zone" id="drop-xlsx" onclick="document.getElementById('file-xlsx').click()">
+            <div class="icon-big">📂</div>
+            <strong>Glisser-déposer ou cliquer</strong>
+            <p>Format .xlsx — télécharge d'abord le modèle depuis la barre latérale</p>
+          </div>
+          <input type="file" id="file-xlsx" accept=".xlsx" style="display:none" onchange="importFile('xlsx',this)"/>
+        </div>
+        <div>
+          <h3 style="margin-bottom:1rem;font-size:15px">📄 Fichier JSON (.json)</h3>
+          <div class="import-zone" id="drop-json" onclick="document.getElementById('file-json').click()">
+            <div class="icon-big">{ }</div>
+            <strong>Glisser-déposer ou cliquer</strong>
+            <p>Format JSON exporté depuis cette application</p>
+          </div>
+          <input type="file" id="file-json" accept=".json" style="display:none" onchange="importFile('json',this)"/>
+        </div>
+      </div>
+      <div style="margin-top:2rem;background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border)">
+        <h3 style="margin-bottom:1rem">📋 Coller des données (JSON brut)</h3>
+        <textarea id="paste-area" style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;outline:none" placeholder='[{"nom":"Ahmed","classe":"N1","prof":"M. Guerch","notes_arabe":["15","14","13","16"],...}]'></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="pasteImport()">Importer le JSON</button>
+          <button class="btn btn-outline" onclick="document.getElementById('paste-area').value=''">Effacer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT TAB -->
+    <div id="tab-export" style="display:none;padding:2rem">
+      <h2 style="margin-bottom:1.5rem">Exporter les données</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+        <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border);text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">🗂️</div>
+          <h3 style="margin-bottom:8px">PDF — Niveau actif</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Un PDF par bulletin, fusionné en un seul fichier</p>
+          <button class="btn btn-primary" style="width:100%" onclick="exportAllPDF()">Télécharger PDF</button>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border);text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">📊</div>
+          <h3 style="margin-bottom:8px">Excel — Tous niveaux</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Un onglet par niveau avec toutes les données</p>
+          <button class="btn btn-gold" style="width:100%" onclick="exportAll()">Télécharger Excel</button>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border);text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">💾</div>
+          <h3 style="margin-bottom:8px">JSON — Sauvegarde</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Sauvegarde locale pour réimporter plus tard</p>
+          <button class="btn btn-outline" style="width:100%" onclick="exportJSON()">Télécharger JSON</button>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border);text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">📋</div>
+          <h3 style="margin-bottom:8px">Modèle Excel vide</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Télécharge le modèle pour le remplir manuellement</p>
+          <button class="btn btn-outline" style="width:100%" onclick="downloadTemplate()">Télécharger modèle</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── FORM MODAL ── -->
+<div class="form-overlay" id="form-overlay">
+<div class="form-modal" id="form-modal">
+  <div class="form-header">
+    <h3 id="form-title">Nouvel élève</h3>
+    <button class="close-btn" onclick="closeForm()">✕</button>
+  </div>
+  <div class="form-body" id="form-body">
+    <!-- Generated dynamically -->
+  </div>
+  <div class="form-footer">
+    <button class="btn btn-outline" onclick="closeForm()">Annuler</button>
+    <button class="btn btn-outline" onclick="saveAndPrint()">💾 + 🖨 Sauver & PDF</button>
+    <button class="btn btn-primary" onclick="saveEleve()">💾 Sauvegarder</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+const MATIERES = {
+  1: {
+    arabe: [['الْقِرَاءَةُ وَالْفَهْمُ','Lecture & Compréhension'],['التَّعْبِيرُ الشَّفْوِيُّ','Expression Orale'],['الْإِمْلَاءُ','Dictée (Imlaa)'],['الْخَطُّ',"L'écriture"]],
+    islami: [['التَّرْبِيَةُ الْإِسْلَامِيَّةُ','Éducation Islamique'],['الْقُرْآنُ الْكَرِيمُ','Noble Coran']],
+  },
+  2: {
+    arabe: [['الْقِرَاءَةُ وَالْفَهْمُ','Lecture & Compréhension'],['التَّعْبِيرُ الشَّفْوِيُّ','Expression Orale'],['التَّعْبِيرُ الْكِتَابِيُّ','Expression Écrite'],['الْإِمْلَاءُ','Dictée (Imlaa)'],['الْخَطُّ',"L'écriture"]],
+    islami: [['التَّرْبِيَةُ الْإِسْلَامِيَّةُ','Éducation Islamique'],['الْقُرْآنُ الْكَرِيمُ','Noble Coran']],
+  },
+  3: {
+    arabe: [['الْقِرَاءَةُ وَالْفَهْمُ','Lecture & Compréhension'],['التَّعْبِيرُ الشَّفْوِيُّ','Expression Orale'],['التَّعْبِيرُ الْكِتَابِيُّ','Expression Écrite'],['الْإِمْلَاءُ','Dictée (Imlaa)'],['الْخَطُّ',"L'écriture"]],
+    islami: [['التَّرْبِيَةُ الْإِسْلَامِيَّةُ','Éducation Islamique'],['التِّلَاوَةُ وَقَوَاعِدُ التَّجْوِيدِ','Tilawa & Règles du Tajwid']],
+  }
+};
+
+const _OBS_CONTINU = [
+  ['','— obs —'],
+  ['Résultats excellents et constants tout au long du semestre, félicitations !\nنتائج ممتازة ومستمرة طوال الفصل، مبروك!','⭐⭐⭐ Excellents et constants'],
+  ['Très bon suivi, travail sérieux et régulier en classe et à la maison.\nمتابعة ممتازة، عمل جاد ومنتظم في الفصل وفي البيت.','⭐⭐⭐ Très bon suivi'],
+  ['Constance remarquable, élève toujours prêt et impliqué.\nثبات لافت، الطالب دائماً مستعد ومنخرط في التعلم.','⭐⭐⭐ Constance remarquable'],
+  ['Bons résultats, investissement régulier tout au long du semestre.\nنتائج جيدة، تحضير منتظم طوال الفصل الدراسي.','⭐⭐ Bons résultats'],
+  ['Suivi satisfaisant, travail régulier et bonne participation active.\nمتابعة مُرضية، عمل منتظم ومشاركة فعّالة.','⭐⭐ Suivi satisfaisant'],
+  ['Résultats corrects dans l\'ensemble, efforts à maintenir.\nنتائج مقبولة بشكل عام، يحافظ على جهوده.','⭐⭐ Corrects dans l\'ensemble'],
+  ['Travail régulier, quelques baisses à corriger pour plus de constance.\nعمل منتظم، بعض التراجعات تحتاج تصحيحاً لمزيد من الثبات.','⭐ Travail régulier'],
+  ['Des efforts notables ce semestre, à poursuivre sur cette lancée.\nجهود لافتة هذا الفصل، يواصل على هذا المنوال.','⭐ Efforts notables'],
+  ['Très bonne progression depuis le début du semestre, félicitations !\nتقدم ممتاز منذ بداية الفصل، أحسنت ومبروك!','⭐ Belle progression'],
+  ['A fourni un effort particulier ce semestre, résultats encourageants.\nبذل جهداً خاصاً هذا الفصل، نتائج مشجعة.','⭐ Effort particulier'],
+  ['Résultats irréguliers, à travailler la régularité et la constance.\nنتائج غير منتظمة، يعمل على الانتظام والثبات.','📈 Irréguliers'],
+  ['Des hauts et des bas, besoin de plus de régularité dans le travail.\nتذبذب في النتائج، يحتاج إلى مزيد من الانتظام.','📈 Des hauts et des bas'],
+  ['Manque parfois de préparation en classe, révision à la maison conseillée.\nيفتقر أحياناً للتحضير، المراجعة في البيت موصى بها.','📈 Manque de préparation'],
+  ['Des progrès en cours de semestre, à confirmer lors du prochain.\nتقدم ملحوظ خلال الفصل، يُثبِّته في الفصل القادم.','📈 Progrès en cours'],
+  ['Élève sérieux et consciencieux, mérite d\'être encouragé et souligné.\nطالب جاد ومجتهد، يستحق التشجيع والإشادة.','📈 Sérieux et consciencieux'],
+  ['Résultats en dessous du potentiel de l\'élève, plus d\'engagement requis.\nالنتائج دون إمكانيات الطالب، مزيد من الجهد مطلوب.','⚠ En dessous du potentiel'],
+  ['Irrégularités fréquentes, suivi parental recommandé.\nعدم انتظام متكرر، المتابعة الأسرية موصى بها.','⚠ Irrégularités fréquentes'],
+  ['Résultats insuffisants, travail quotidien indispensable pour progresser.\nنتائج غير كافية، العمل اليومي ضروري للتقدم.','⚠ Insuffisants'],
+  ['Doit apprendre à travailler de façon plus régulière et méthodique.\nيتعلم العمل بشكل أكثر انتظاماً ومنهجية.','⚠ Méthode à revoir'],
+  ['Bonne préparation aux évaluations, résultats en constante amélioration.\nتحضير جيد للتقييمات، نتائج في تحسن مستمر.','⭐⭐ Bonne préparation'],
+];
+const _OBS_PRESENCE = [
+  ['','— obs —'],
+  ['Présence exemplaire, aucune absence sur le semestre, félicitations !\nحضور مثالي، لا غياب طوال الفصل، مبروك!','⭐⭐⭐ Aucune absence'],
+  ['Très grande assiduité, toujours présent et ponctuel, un modèle.\nانتظام عالٍ جداً، دائم الحضور والتوقيت، قدوة يُحتذى بها.','⭐⭐⭐ Modèle d\'assiduité'],
+  ['Assidu et ponctuel tout au long du semestre, excellent comportement.\nمنتظم في الحضور والمواعيد طوال الفصل، سلوك ممتاز.','⭐⭐⭐ Assidu et ponctuel'],
+  ['Présence sans faille, engagement admirable.\nحضور لا غبار عليه، التزام يستحق الإشادة والتقدير.','⭐⭐⭐ Présence sans faille'],
+  ['Très bonne présence, quelques rares absences justifiées.\nحضور جيد جداً، غيابات نادرة ومبررة.','⭐⭐ Très bonne présence'],
+  ['Présence régulière, ponctualité à souligner et encourager.\nحضور منتظم، الانضباط في المواعيد يستحق التشجيع.','⭐⭐ Présence régulière'],
+  ['Bonne assiduité dans l\'ensemble, légères absences sans impact.\nانتظام جيد بشكل عام، غيابات طفيفة دون تأثير.','⭐⭐ Bonne assiduité'],
+  ['Toujours à l\'heure et prêt à travailler, excellent comportement.\nدائماً في الموعد ومستعد للعمل، سلوك ممتاز.','⭐⭐ Toujours à l\'heure'],
+  ['Présence globalement correcte, à améliorer la ponctualité.\nحضور صحيح بشكل عام، يحسّن الانضباط في المواعيد.','⭐ Globalement correcte'],
+  ['Quelques absences signalées, à veiller à la régularité.\nبعض الغيابات المسجّلة، يهتم بانتظام الحضور.','⭐ Quelques absences'],
+  ['A fait l\'effort d\'être présent malgré des contraintes, à féliciter.\nبذل جهداً للحضور رغم الظروف، يستحق الإشادة.','⭐ Effort notable'],
+  ['Très bonne amélioration de l\'assiduité par rapport au semestre passé.\nتحسن ملحوظ في الانتظام مقارنة بالفصل الماضي.','⭐ Belle amélioration'],
+  ['Absences à surveiller, la régularité est importante pour progresser.\nالغيابات تستوجب الانتباه، الانتظام مهم للتقدم.','📈 Absences à surveiller'],
+  ['Présence irrégulière ce semestre, impact visible sur les résultats.\nحضور غير منتظم هذا الفصل، تأثير واضح على النتائج.','📈 Présence irrégulière'],
+  ['Retards répétés, la ponctualité est à travailler.\nتأخرات متكررة، يجب العمل على الانضباط في المواعيد.','📈 Retards répétés'],
+  ['Des absences non justifiées, vigilance parentale souhaitée.\nغيابات غير مبررة، يُرجى المتابعة الأسرية.','⚠ Absences injustifiées'],
+  ['Trop d\'absences ce semestre, risque de lacunes importantes.\nغيابات كثيرة هذا الفصل، خطر حدوث ثغرات كبيرة.','⚠ Trop d\'absences'],
+  ['La présence insuffisante nuit aux résultats, remédiation urgente.\nالحضور غير الكافي يضر بالنتائج، معالجة عاجلة مطلوبة.','⚠ Présence insuffisante'],
+  ['Absentéisme préoccupant, concertation avec la famille recommandée.\nغياب مقلق، التشاور مع الأسرة موصى به.','⚠ Absentéisme préoccupant'],
+  ['Doit améliorer sa régularité pour profiter pleinement des cours.\nيحسّن انتظامه للاستفادة الكاملة من الدروس.','⚠ Régularité à améliorer'],
+];
+const _OBS_PROF = [
+  ['','— appréciation —'],
+  ['Excellent semestre, élève sérieux, appliqué et motivé. Félicitations à la famille !\nفصل ممتاز، طالب جاد ومجتهد ومتحفز. مبروك للعائلة الكريمة!','⭐⭐⭐ Excellent semestre'],
+  ['Très bon niveau général, élève prometteur qui mérite d\'être encouragé.\nمستوى عام ممتاز جداً، طالب واعد يستحق التشجيع والدعم.','⭐⭐⭐ Très bon niveau'],
+  ['Très beau semestre, des efforts visibles dans toutes les matières.\nفصل رائع، جهود واضحة في جميع المواد، نثمّن ذلك.','⭐⭐⭐ Très beau semestre'],
+  ['Comportement exemplaire en classe, plaisir de l\'avoir parmi nous.\nسلوك مثالي في الفصل، يسعدنا وجوده بيننا.','⭐⭐⭐ Comportement exemplaire'],
+  ['Élève motivé et curieux, un plaisir à accompagner dans son apprentissage.\nطالب متحفز ومتطلع، من أسعد الأشياء مرافقته في التعلم.','⭐⭐⭐ Motivé et curieux'],
+  ['Bon semestre dans l\'ensemble, continuer sur cette belle lancée.\nفصل جيد بشكل عام، يواصل على هذا المنوال الجيد.','⭐⭐ Bon semestre'],
+  ['Semestre encourageant, les efforts fournis commencent à porter leurs fruits.\nفصل مشجع، الجهود المبذولة بدأت تؤتي ثمارها.','⭐⭐ Semestre encourageant'],
+  ['Élève sérieux et bien intégré dans le groupe, à encourager.\nطالب جاد ومندمج جيداً في المجموعة، نشجعه.','⭐⭐ Sérieux et intégré'],
+  ['Bonne évolution sur le semestre, félicitations pour la persévérance.\nتطور جيد خلال الفصل، مبروك على المثابرة.','⭐⭐ Bonne évolution'],
+  ['Des progrès notables, élève qui gagne en confiance et en compétences.\nتقدم لافت، طالب يكتسب الثقة والكفاءة تدريجياً.','⭐⭐ Progrès notables'],
+  ['Semestre correct, quelques matières à renforcer pour progresser.\nفصل مقبول، بعض المواد تحتاج تعزيزاً للتقدم.','⭐ Semestre correct'],
+  ['Des résultats irréguliers, besoin de plus de régularité dans l\'effort.\nنتائج غير منتظمة، مزيد من الانتظام في الجهد مطلوب.','⭐ Résultats irréguliers'],
+  ['Élève travailleur qui progresse à son rythme, à soutenir.\nطالب مجتهد يتقدم بإيقاعه الخاص، ندعمه ونشجعه.','⭐ Progresse à son rythme'],
+  ['Avec plus de régularité, cet élève peut atteindre d\'excellents résultats.\nبمزيد من الانتظام، يستطيع هذا الطالب تحقيق نتائج ممتازة.','⭐ Potentiel à exploiter'],
+  ['Potentiel certain, mais le manque de travail personnel freine la progression.\nإمكانيات حقيقية، لكن قلة العمل الشخصي تعيق التقدم.','📈 Potentiel non exploité'],
+  ['Semestre difficile, un soutien familial renforcé serait bénéfique.\nفصل صعب، دعم أسري مكثف سيكون مفيداً جداً.','📈 Semestre difficile'],
+  ['Des difficultés à surmonter ensemble, encouragement familial essentiel.\nصعوبات نتجاوزها معاً، التشجيع الأسري ضروري.','📈 Difficultés à surmonter'],
+  ['Résultats en dessous du niveau attendu, révision intensive recommandée.\nنتائج دون المستوى المنتظر، مراجعة مكثفة موصى بها.','⚠ En dessous du niveau'],
+  ['Résultats insuffisants, une concertation avec la famille est souhaitée.\nنتائج غير كافية، لقاء مع الأسرة مرغوب فيه.','⚠ Résultats insuffisants'],
+  ['Un soutien scolaire personnalisé serait bénéfique pour progresser.\nدعم دراسي شخصي سيكون مفيداً للتقدم.','⚠ Soutien recommandé'],
+];
+
+const OBS_OPTIONS = {
+  1: {
+    arabe: {
+      0: [
+        ['','— obs —'],
+        ['Lit parfaitement fluide, compréhension excellente et expression très claire.\nيقرأ بطلاقة تامة، فهم ممتاز وتعبير واضح جداً.','⭐⭐⭐ Parfaitement fluide'],
+        ['Déchiffre les lettres avec aisance, sens de la lecture remarquable.\nيُفكِّك الحروف بسهولة، موهبة في القراءة لافتة.','⭐⭐⭐ Aisance remarquable'],
+        ['Lit couramment les textes courts, très bonne compréhension globale.\nيقرأ النصوص القصيرة بطلاقة، فهم عام جيد جداً.','⭐⭐⭐ Très bonne compréhension'],
+        ['Lecture claire et articulée, répond bien aux questions de compréhension.\nقراءة واضحة ومعبّرة، يُجيب جيداً على أسئلة الفهم.','⭐⭐⭐ Claire et articulée'],
+        ['Très belle progression depuis le début de l\'année, félicitations !','⭐⭐⭐ Belle progression'],
+        ['Bonne lecture, comprend bien le sens général des textes lus.\nقراءة جيدة، يفهم المعنى العام للنصوص المقروءة.','⭐⭐ Bonne compréhension'],
+        ['Lecture correcte, fait preuve d\'une bonne concentration en classe.','⭐⭐ Bonne concentration'],
+        ['Lit avec enthousiasme, plaisir de lire très visible.\nيقرأ بحماس وشغف، المتعة في القراءة واضحة.','⭐⭐ Lit avec enthousiasme'],
+        ['Bonne mémoire des mots appris, à enrichir le vocabulaire de base.','⭐⭐ Bon vocabulaire'],
+        ['Progresse régulièrement en lecture, efforts très encourageants.\nيتقدم بانتظام في القراءة، الجهود مشجعة جداً.','⭐ Progresse régulièrement'],
+        ['Commence à lire les syllabes avec assurance, continuer les efforts.','⭐ Débuts prometteurs'],
+        ['Reconnaît les lettres isolées, à poursuivre l\'apprentissage.','⭐ Reconnaît les lettres'],
+        ['Lecture hésitante mais des progrès sont visibles à chaque séance.\nالقراءة متقطعة لكن التحسن يظهر في كل حصة.','⭐ Progrès visibles'],
+        ['Sait lire les voyelles courtes, à travailler les voyelles longues.','⭐ Voyelles courtes acquises'],
+        ['Très bon repérage des harakat, lecture vocalisée propre.\nإتقان جيد للتشكيل، قراءة مُشكَّلة صحيحة.','⭐⭐ Harakat bien maîtrisés'],
+        ['A du mal à assembler les lettres, révision des bases nécessaire.','📈 Assemblage à revoir'],
+        ['Confond encore certaines lettres, travail de reconnaissance conseillé.\nلا يزال يخلط بين بعض الحروف، تدريب على التمييز موصى به.','📈 Confusion de lettres'],
+        ['Lecture très lente, exercices quotidiens recommandés à la maison.\nالقراءة بطيئة جداً، تمارين يومية في المنزل موصى بها.','⚠ Lecture lente'],
+        ['Doit mémoriser les formes des lettres pour progresser en lecture.','⚠ Formes à mémoriser'],
+        ['A besoin d\'un soutien renforcé pour consolider les acquis.','⚠ Soutien nécessaire'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['S\'exprime spontanément et clairement en arabe, vocabulaire très riche.','⭐⭐⭐ Expression spontanée'],
+        ['Participe activement aux échanges oraux, prononciation excellente.\nيُشارك بفعّالية في التعبير الشفهي، نطق ممتاز.','⭐⭐⭐ Participe activement'],
+        ['Répond aux questions avec des phrases complètes, très bon niveau.\nيُجيب بجمل كاملة، مستوى جيد جداً.','⭐⭐⭐ Phrases complètes'],
+        ['Mémorise facilement les formules apprises et les réutilise bien.','⭐⭐⭐ Bonne mémorisation'],
+        ['Très bonne interaction avec les camarades lors des activités orales.\nتفاعل جيد جداً مع الزملاء في أنشطة التعبير الشفهي.','⭐⭐⭐ Excellente interaction'],
+        ['Prend la parole avec confiance, bonne articulation des mots.','⭐⭐ Prend la parole'],
+        ['Participe régulièrement, prononciation globalement correcte.\nيُشارك بانتظام، نطق صحيح بشكل عام.','⭐⭐ Prononciation correcte'],
+        ['Prononce bien les lettres emphatiques, c\'est un très bon point.','⭐⭐ Lettres emphatiques'],
+        ['Fait des efforts à l\'oral, le vocabulaire s\'enrichit progressivement.','⭐ Vocabulaire s\'enrichit'],
+        ['Comprend les consignes orales, commence à répondre en arabe.','⭐ Comprend les consignes'],
+        ['Progresse bien depuis le début de l\'année, à maintenir les efforts.','⭐ Belle progression'],
+        ['Timide à l\'oral mais les réponses sont correctes quand sollicité.','⭐ Timide mais correct'],
+        ['Réponses courtes mais justes, continuer à stimuler l\'expression.','⭐ Réponses courtes'],
+        ['Difficultés à s\'exprimer spontanément, besoin d\'encouragement.','📈 Manque de spontanéité'],
+        ['Comprend bien mais hésite beaucoup à parler, à l\'encourager.','📈 Hésitant à parler'],
+        ['Confond parfois des sons proches, travail de phonétique conseillé.\nيخلط أحياناً بين الأصوات المتشابهة، تدريب صوتي موصى به.','📈 Confusion phonétique'],
+        ['S\'exprime par mots isolés, à encourager à faire des phrases.','📈 Mots isolés'],
+        ['Expression orale à renforcer par des répétitions à la maison.\nيُعزِّز التعبير الشفهي بالتكرار في المنزل.','⚠ À renforcer'],
+        ['Manque de pratique orale, révision des leçons à voix haute conseillée.','⚠ Manque de pratique'],
+        ['Doit s\'exercer à répondre en phrases complètes en arabe.','⚠ Phrases à développer'],
+      ],
+      2: [
+        ['','— obs —'],
+        ['Imlaa sans faute, parfaite maîtrise de l\'orthographe arabe.','⭐⭐⭐ Aucune faute'],
+        ['Très peu de fautes, maîtrise très solide des règles d\'imlaa.','⭐⭐⭐ Très peu de fautes'],
+        ['Bonne orthographe, place correctement les voyelles (harakat).\nكتابة صحيحة، يضع التشكيل في مواضعه الصحيحة.','⭐⭐⭐ Harakat corrects'],
+        ['Très bonne évolution par rapport au début de l\'année, bravo !','⭐⭐⭐ Très bonne évolution'],
+        ['Appliqué lors des exercices d\'imlaa, résultats très satisfaisants.','⭐⭐⭐ Très satisfaisant'],
+        ['Écrit les lettres correctement dans leurs différentes positions.\nيكتب الحروف صحيحاً في مختلف مواضعها.','⭐⭐ Positions maîtrisées'],
+        ['Dictée bien réussie, peu d\'erreurs et bonnes autocorrections.','⭐⭐ Peu d\'erreurs'],
+        ['Bonne progression en imlaa, fait preuve de rigueur.\nتقدم جيد في الإملاء، يُظهر دقة ملحوظة.','⭐⭐ Bonne rigueur'],
+        ['Bonne mémorisation des mots vus en classe, à élargir le vocabulaire.','⭐⭐ Bonne mémorisation'],
+        ['Des progrès notables dans la distinction des lettres similaires.\nتقدم لافت في التمييز بين الحروف المتشابهة.','⭐ Lettres similaires'],
+        ['Imlaa en progression, mais des erreurs récurrentes à corriger.\nالإملاء في تحسن لكن أخطاء متكررة تحتاج للتصحيح.','⭐ En progression'],
+        ['Recopie proprement mais perd des points lors de la dictée libre.\nينسخ بعناية لكن يخطئ في الإملاء الحر.','⭐ Copie correcte'],
+        ['Quelques oublis de points diacritiques, à être plus attentif.','📈 Oubli de points'],
+        ['Confond certaines lettres (ص/ض), entraînement nécessaire.\nيخلط بين بعض الحروف (ص/ض)، تدريب مكثف ضروري.','📈 Confusion de lettres'],
+        ['Omet parfois les voyelles longues, révision des règles recommandée.','📈 Voyelles longues'],
+        ['Difficultés à distinguer les lettres similaires, exercices conseillés.\nصعوبة في التمييز بين الحروف المتشابهة، تمارين موصى بها.','⚠ Lettres similaires'],
+        ['Travail sérieux mais des lacunes persistent, soutien familial bienvenu.','⚠ Lacunes persistantes'],
+        ['Écrit sous dictée avec effort mais fait encore beaucoup d\'erreurs.','⚠ Beaucoup d\'erreurs'],
+        ['Doit apprendre à vérifier son travail après la dictée.','⚠ Vérification à faire'],
+        ['Lacunes importantes en imlaa, entraînement régulier indispensable.','⚠ Lacunes importantes'],
+      ],
+      3: [
+        ['','— obs —'],
+        ['Très beau khatt, lettres parfaitement formées et liées avec élégance.','⭐⭐⭐ Très beau khatt'],
+        ['Écriture remarquable pour son âge, application exceptionnelle.','⭐⭐⭐ Application exceptionnelle'],
+        ['Très belle progression en calligraphie cette année, félicitations !','⭐⭐⭐ Belle progression'],
+        ['Reproduit fidèlement les modèles calligraphiques, excellent travail.\nينسخ النماذج الخطية بأمانة، عمل ممتاز.','⭐⭐⭐ Modèles bien reproduits'],
+        ['Bel effort de présentation, le soin mis dans le travail est admirable.','⭐⭐⭐ Présentation admirable'],
+        ['Lettres bien formées, bonne maîtrise de l\'espace dans la ligne.','⭐⭐ Espace bien maîtrisé'],
+        ['Calligraphie soignée, progrès visibles depuis le début de l\'année.','⭐⭐ Soignée'],
+        ['Écriture propre et régulière, effort constant à féliciter.','⭐⭐ Propre et régulière'],
+        ['Bonne tenue du crayon, les lettres sont bien distinctes.\nإمساك القلم جيد، الحروف متميزة ومتمايزة.','⭐⭐ Bonne tenue'],
+        ['Fait des efforts de présentation, le cahier est bien tenu.','⭐ Efforts de présentation'],
+        ['Écriture en progrès, les lettres sont de mieux en mieux formées.','⭐ Lettres en progrès'],
+        ['Tient bien le crayon, à travailler la régularité de la taille.','⭐ Taille à régulariser'],
+        ['Copie proprement le modèle, à améliorer l\'écriture spontanée.','⭐ Copie propre'],
+        ['Quelques lettres mal formées, à retravailler les modèles à la maison.','📈 Quelques lettres'],
+        ['A du mal à lier les lettres, exercices de liaison recommandés.','📈 Liaison à travailler'],
+        ['Les lettres sont trop irrégulières, besoin de plus de pratique.','📈 Irrégulières'],
+        ['Écriture hésitante mais de bonne volonté, continuer les exercices.','📈 Hésitante'],
+        ['Le khatt manque de soin, à prendre le temps d\'écrire correctement.','⚠ Manque de soin'],
+        ['Doit travailler la formation des lettres, exercices de base conseillés.','⚠ Formation à revoir'],
+        ['Écriture brouillonne, effort de présentation demandé.','⚠ Brouillonne'],
+      ],
+    },
+    islami: {
+      0: [
+        ['','— obs —'],
+        ['Excellent niveau, maîtrise parfaite des leçons et des règles islamiques.','⭐⭐⭐ Maîtrise parfaite'],
+        ['Connaît bien les piliers de l\'islam et comprend leur signification.','⭐⭐⭐ Piliers bien compris'],
+        ['Fait le lien entre les leçons et sa vie quotidienne, c\'est excellent.','⭐⭐⭐ Lien avec le quotidien'],
+        ['Très bonne connaissance des sourates apprises en classe.\nمعرفة جيدة جداً بالسور المدروسة في الفصل.','⭐⭐⭐ Sourates connues'],
+        ['Mémorise les douas avec facilité et les restitue correctement.','⭐⭐⭐ Douas mémorisées'],
+        ['Très bonne assimilation des notions, élève sérieux et attentif.','⭐⭐ Assimilation sérieuse'],
+        ['Retient bien les leçons, les restitue avec clarté lors des évaluations.','⭐⭐ Restitution claire'],
+        ['Bonne attitude en classe, applique les valeurs islamiques.','⭐⭐ Valeurs appliquées'],
+        ['Participe activement aux discussions islamiques, bonne réflexion.','⭐⭐ Participation active'],
+        ['Apprécie les cours d\'éducation islamique, implication à souligner.','⭐⭐ Apprécie les cours'],
+        ['Progrès visibles dans la mémorisation des douas et règles de vie.','⭐ Progrès visibles'],
+        ['S\'intéresse aux leçons islamiques, participe volontiers.','⭐ S\'intéresse'],
+        ['Des efforts à noter, quelques notions à réviser et approfondir.','⭐ Efforts à noter'],
+        ['Retient les points essentiels mais manque de détails dans les réponses.','⭐ Points essentiels retenus'],
+        ['Bonne connaissance des actes d\'adoration de base, à approfondir.','⭐ Base solide'],
+        ['Participe peu, doit s\'impliquer davantage dans les échanges.','📈 Participation à renforcer'],
+        ['A du mal à mémoriser les termes arabes, révision régulière conseillée.','📈 Termes arabes'],
+        ['Attitude positive en classe, mais les résultats peuvent s\'améliorer.','📈 À améliorer'],
+        ['Lacunes dans certaines notions, soutien parental recommandé.','⚠ Lacunes'],
+        ['Doit revoir les leçons plus régulièrement pour consolider les acquis.','⚠ Révision urgente'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['Récitation impeccable, tajwid excellent, mémorisation très solide.','⭐⭐⭐ Tajwid excellent'],
+        ['Mémorise rapidement et récite avec une belle voix, masha\'Allah.','⭐⭐⭐ Belle voix, rapide'],
+        ['A mémorisé toutes les sourates demandées avec brio, félicitations !','⭐⭐⭐ Tout mémorisé'],
+        ['Prononce bien les lettres arabes, base très solide pour la récitation.','⭐⭐⭐ Prononciation excellente'],
+        ['Applique correctement les règles de base du waqf, très bien.','⭐⭐⭐ Waqf maîtrisé'],
+        ['Très bonne mémorisation, récitation claire et bien vocalisée.','⭐⭐ Mémorisation solide'],
+        ['Récite correctement les sourates apprises, bonne application du tajwid.','⭐⭐ Tajwid appliqué'],
+        ['Montre un intérêt sincère pour le Coran, à encourager et soutenir.','⭐⭐ Intérêt sincère'],
+        ['Bonne mémorisation, quelques légères erreurs de tajwid à corriger.','⭐⭐ Légères erreurs'],
+        ['Fait des efforts de mémorisation, des progrès depuis le début.','⭐ Efforts de mémorisation'],
+        ['Mémorise correctement avec le soutien de la famille, à maintenir.','⭐ Soutien familial'],
+        ['Récitation correcte mais hésitante, révision régulière nécessaire.','⭐ Hésitante'],
+        ['Récite avec confiance, à travailler la fluidité et le tajwid.','⭐ Fluidité à travailler'],
+        ['Mémorise lentement, révision quotidienne à la maison indispensable.','📈 Mémorisation lente'],
+        ['Oublie fréquemment les sourates apprises, manque de révision.','📈 Oublis fréquents'],
+        ['Confond certains passages similaires, écoute quotidienne recommandée.','📈 Confusion de passages'],
+        ['Belles intentions mais manque de régularité dans la révision.','📈 Manque de régularité'],
+        ['A du mal à mémoriser, besoin d\'écoute régulière des récitations.','⚠ Difficulté à mémoriser'],
+        ['Faible mémorisation ce semestre, encouragement familial souhaité.','⚠ Faible mémorisation'],
+        ['Doit travailler la régularité de la mémorisation entre les séances.','⚠ Régularité à renforcer'],
+      ],
+    },
+    continu: _OBS_CONTINU,
+    presence: _OBS_PRESENCE,
+    prof: _OBS_PROF,
+  },
+  2: {
+    arabe: {
+      0: [
+        ['','— obs —'],
+        ['Lecture parfaitement fluide, compréhension fine et analyse pertinente.','⭐⭐⭐ Analyse pertinente'],
+        ['Excellent niveau de lecture, identifie les idées principales sans difficulté.','⭐⭐⭐ Idées principales'],
+        ['Lit avec expressivité, comprend les nuances des textes lus.','⭐⭐⭐ Comprend les nuances'],
+        ['Très bonne compréhension, reformule correctement les textes étudiés.','⭐⭐⭐ Reformule bien'],
+        ['Très bon sens du vocabulaire arabe, atout majeur pour la lecture.','⭐⭐⭐ Riche vocabulaire'],
+        ['Lecture courante et compréhension globale très satisfaisante.','⭐⭐ Lecture courante'],
+        ['Bonne lecture, identifie les informations importantes dans les textes.','⭐⭐ Identifie bien'],
+        ['Sait dégager le thème principal d\'un texte, bonne aptitude analytique.','⭐⭐ Thème principal'],
+        ['S\'améliore progressivement, félicitations pour les efforts fournis.','⭐⭐ Amélioration progressive'],
+        ['Lit avec attention et pose de bonnes questions sur les textes.','⭐⭐ Curiosité littéraire'],
+        ['Progresse bien en lecture, la compréhension s\'améliore régulièrement.','⭐ Progresse bien'],
+        ['Des progrès notables par rapport au semestre précédent.','⭐ Progrès notables'],
+        ['Lecture correcte mais compréhension encore partielle, à travailler.','⭐ Compréhension partielle'],
+        ['Lit les textes avec quelques hésitations, compréhension à renforcer.','⭐ Quelques hésitations'],
+        ['Fait des efforts, lecture en cours d\'amélioration.','⭐ En amélioration'],
+        ['A du mal à comprendre le vocabulaire nouveau, dictionnaire conseillé.','📈 Vocabulaire limité'],
+        ['Lecture lente, à augmenter le rythme par une pratique quotidienne.','📈 Lecture lente'],
+        ['Compréhension partielle, nécessite de lire plus à la maison.','📈 Lecture insuffisante'],
+        ['Des difficultés persistantes, travail de fond recommandé.','⚠ Difficultés persistantes'],
+        ['Doit lire davantage de textes arabes pour enrichir la compréhension.','⚠ Lecture à enrichir'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['S\'exprime avec aisance et précision, vocabulaire très riche et varié.','⭐⭐⭐ Aisance et précision'],
+        ['Prend la parole spontanément, construit des phrases complexes.','⭐⭐⭐ Phrases complexes'],
+        ['Très bonne participation orale, prononciation soignée.','⭐⭐⭐ Participation soignée'],
+        ['Excellente prononciation, notamment des lettres emphatiques.','⭐⭐⭐ Lettres emphatiques'],
+        ['Très belle progression à l\'oral depuis la rentrée, bravo !','⭐⭐⭐ Belle progression'],
+        ['S\'exprime clairement, fait preuve d\'une bonne aisance linguistique.','⭐⭐ Aisance linguistique'],
+        ['Bonne expression, formule ses idées avec de bonnes structures.','⭐⭐ Bonnes structures'],
+        ['Participe régulièrement, prononciation et articulation correctes.','⭐⭐ Prononciation correcte'],
+        ['Bonne mémorisation des expressions apprises, les réutilise bien.','⭐⭐ Expressions réutilisées'],
+        ['Interagit bien avec le groupe lors des activités orales en classe.','⭐⭐ Bonne interaction'],
+        ['Fait des efforts pour s\'exprimer en arabe, progrès visibles.','⭐ Efforts visibles'],
+        ['Comprend les consignes et répond correctement aux questions posées.','⭐ Comprend les consignes'],
+        ['Expression orale en progrès, à continuer à pratiquer en famille.','⭐ En progrès'],
+        ['S\'exprime timidement mais les réponses sont globalement correctes.','⭐ Timide mais correct'],
+        ['À l\'aise à l\'écrit mais réservé à l\'oral, à stimuler.','⭐ Réservé à l\'oral'],
+        ['Difficultés à formuler des phrases complètes, aide conseillée.','📈 Phrases incomplètes'],
+        ['Mélange parfois le français et l\'arabe, rigueur linguistique à travailler.','📈 Mélange des langues'],
+        ['Comprend bien mais peine à s\'exprimer, mise en confiance nécessaire.','📈 Manque de confiance'],
+        ['Expression orale à renforcer par des conversations en arabe à la maison.','⚠ À renforcer'],
+        ['Doit préparer ses réponses orales à la maison pour gagner en confiance.','⚠ Préparation à faire'],
+      ],
+      2: [
+        ['','— obs —'],
+        ['Production écrite excellente, textes bien structurés, vocabulaire riche.\nإنتاج كتابي ممتاز، نصوص منظمة جيداً، مفردات غنية.','⭐⭐⭐ Excellente production'],
+        ['Rédige avec aisance, idées bien organisées et expression soignée.','⭐⭐⭐ Aisance rédactionnelle'],
+        ['Utilise des connecteurs logiques avec pertinence, structure très claire.','⭐⭐⭐ Connecteurs logiques'],
+        ['Très bonne orthographe dans les productions écrites, un vrai atout.','⭐⭐⭐ Orthographe solide'],
+        ['Belle progression dans la qualité des productions écrites, bravo !','⭐⭐⭐ Belle progression'],
+        ['Très bonne maîtrise de la rédaction, phrases bien construites.','⭐⭐ Phrases bien construites'],
+        ['Production soignée, utilise bien le vocabulaire appris en classe.','⭐⭐ Vocabulaire réutilisé'],
+        ['Rédige correctement, fait preuve de créativité dans ses textes.','⭐⭐ Créativité'],
+        ['Bonne production écrite, structure les paragraphes correctement.','⭐⭐ Paragraphes structurés'],
+        ['Idées intéressantes et bien développées, style à affiner.','⭐⭐ Idées développées'],
+        ['En progrès à l\'écrit, les phrases sont de mieux en mieux construites.','⭐ En progrès'],
+        ['Fait des efforts en rédaction, le travail de fond commence à payer.','⭐ Travail de fond'],
+        ['Production correcte mais manque de richesse lexicale, à enrichir.','⭐ À enrichir'],
+        ['Phrases courtes mais correctes, à travailler la complexité syntaxique.','⭐ Phrases courtes'],
+        ['Doit relire ses productions pour corriger les erreurs avant de rendre.','⭐ Relecture à faire'],
+        ['Difficultés à organiser ses idées à l\'écrit, planification conseillée.','📈 Organisation à revoir'],
+        ['Manque de vocabulaire écrit, lecture régulière recommandée.','📈 Vocabulaire limité'],
+        ['Production à améliorer, des erreurs récurrentes à corriger.','⚠ Erreurs récurrentes'],
+        ['A du mal à s\'exprimer à l\'écrit en arabe, soutien nécessaire.','⚠ Soutien nécessaire'],
+        ['Rédaction hésitante, utilise peu le vocabulaire des leçons.','⚠ Rédaction hésitante'],
+      ],
+      3: [
+        ['','— obs —'],
+        ['Imlaa parfait, maîtrise totale de l\'orthographe arabe, félicitations !','⭐⭐⭐ Orthographe parfaite'],
+        ['Très peu de fautes, maîtrise très solide des règles orthographiques.','⭐⭐⭐ Très peu de fautes'],
+        ['Progrès remarquables depuis le début de l\'année en imlaa, bravo !','⭐⭐⭐ Progrès remarquables'],
+        ['Applique bien les règles de ta\'nith et de jamaa vues en classe.','⭐⭐⭐ Ta\'nith & jamaa'],
+        ['Très bonne maîtrise des règles du hamza, c\'est excellent.','⭐⭐⭐ Hamza maîtrisé'],
+        ['Bonne maîtrise de l\'orthographe arabe, fautes rares et mineures.','⭐⭐ Fautes mineures'],
+        ['Dictée bien réussie, bonne application des règles vues en classe.','⭐⭐ Règles bien appliquées'],
+        ['Résultats satisfaisants en imlaa, travail régulier bien visible.','⭐⭐ Travail régulier'],
+        ['Fait l\'effort de corriger ses erreurs en classe, à poursuivre.','⭐⭐ Auto-correction'],
+        ['En progrès, les fautes diminuent d\'une séance à l\'autre.','⭐ Fautes en diminution'],
+        ['Des efforts notables, à continuer pour consolider les acquis.','⭐ Efforts notables'],
+        ['Quelques erreurs sur les lettres similaires, entraînement conseillé.','⭐ Lettres similaires'],
+        ['Confond encore certaines graphies, révision des règles nécessaire.','📈 Graphies à revoir'],
+        ['Imlaa en progrès mais des erreurs persistantes, travail recommandé.','📈 Erreurs persistantes'],
+        ['Omet souvent les hamzas et les madds, à retravailler ces points.','📈 Hamza & madd'],
+        ['Doit s\'entraîner à identifier et corriger ses propres erreurs.','📈 Auto-correction'],
+        ['Des lacunes en orthographe arabe, exercices systématiques nécessaires.','⚠ Lacunes'],
+        ['Résultats insuffisants en imlaa, révision approfondie urgente.','⚠ Révision urgente'],
+        ['Difficultés avec l\'orthographe des mots nouveaux, lecture conseillée.','⚠ Mots nouveaux'],
+        ['Doit réviser quotidiennement les mots de vocabulaire pour progresser.','⚠ Révision quotidienne'],
+      ],
+      4: [
+        ['','— obs —'],
+        ['Calligraphie exceptionnelle, écriture élégante et très régulière.','⭐⭐⭐ Calligraphie exceptionnelle'],
+        ['Très beau khatt, lettres parfaitement formées et bien proportionnées.','⭐⭐⭐ Lettres parfaites'],
+        ['Très bon soin apporté au cahier d\'écriture, à maintenir.','⭐⭐⭐ Cahier très soigné'],
+        ['Belle progression en calligraphie depuis la rentrée, bravo !','⭐⭐⭐ Belle progression'],
+        ['Reproduit avec fidélité les modèles calligraphiques, excellent travail.','⭐⭐⭐ Modèles fidèles'],
+        ['Écriture soignée et harmonieuse, excellent niveau pour son âge.','⭐⭐ Harmonieuse'],
+        ['Bonne calligraphie, mise en page soignée et très lisible.','⭐⭐ Mise en page soignée'],
+        ['Khatt propre et régulier, de bons efforts constants à souligner.','⭐⭐ Propre et régulier'],
+        ['Écriture bien travaillée, les lettres sont bien distinguées.','⭐⭐ Lettres distinguées'],
+        ['Bonne maîtrise des différentes graphies des lettres dans le mot.','⭐⭐ Graphies maîtrisées'],
+        ['En progrès en calligraphie, les lettres sont mieux formées.','⭐ En progrès'],
+        ['Fait des efforts de présentation, l\'écriture s\'améliore.','⭐ Efforts de présentation'],
+        ['Quelques lettres irrégulières, à retravailler les modèles.','⭐ Quelques irrégularités'],
+        ['L\'écriture manque encore de régularité, exercices conseillés.','📈 Manque de régularité'],
+        ['Liaison des lettres à améliorer, exercices de jonction recommandés.','📈 Liaison à améliorer'],
+        ['Écriture trop rapide et négligée, prendre le temps d\'écrire.','📈 Trop rapide'],
+        ['Les lettres sont trop serrées, travail sur l\'espacement nécessaire.','📈 Espacement'],
+        ['Khatt à améliorer sensiblement, effort de présentation demandé.','⚠ À améliorer'],
+        ['Doit soigner davantage son écriture pour atteindre un bon niveau.','⚠ À soigner'],
+        ['Doit s\'exercer plus régulièrement pour gagner en régularité.','⚠ Régularité à construire'],
+      ],
+    },
+    islami: {
+      0: [
+        ['','— obs —'],
+        ['Excellente maîtrise des notions islamiques, réponses précises et réfléchies.','⭐⭐⭐ Réponses précises'],
+        ['Très bon niveau en tarbiya, comprend et applique les enseignements.','⭐⭐⭐ Applique les valeurs'],
+        ['Fait des liens entre les différentes notions étudiées, remarquable.','⭐⭐⭐ Liens entre notions'],
+        ['Applique au quotidien les valeurs apprises en classe, masha\'Allah.','⭐⭐⭐ Valeurs appliquées'],
+        ['Très bonne connaissance des histoires des prophètes, félicitations !','⭐⭐⭐ Histoires des prophètes'],
+        ['Bonne connaissance des piliers de l\'islam et de la foi, niveau solide.','⭐⭐ Piliers solides'],
+        ['Assimile bien les leçons, les restitue avec clarté lors des évaluations.','⭐⭐ Restitution claire'],
+        ['Bonne participation, pose des questions pertinentes en classe.','⭐⭐ Questions pertinentes'],
+        ['Belle progression dans la compréhension des notions islamiques.','⭐⭐ Belle progression'],
+        ['Montre un intérêt sincère pour l\'éducation islamique, à encourager.','⭐⭐ Intérêt sincère'],
+        ['Des efforts visibles, la mémorisation des leçons est en progrès.','⭐ Mémorisation en progrès'],
+        ['Participe de temps en temps, les résultats sont encourageants.','⭐ Encourage'],
+        ['Retient les notions essentielles mais doit approfondir les détails.','⭐ Base acquise'],
+        ['Fait preuve d\'une belle réflexion islamique pour son niveau.','⭐⭐ Belle réflexion'],
+        ['Doit revoir les leçons plus régulièrement pour consolider ses acquis.','📈 Révision à renforcer'],
+        ['Quelques lacunes dans les notions du semestre, révision recommandée.','📈 Lacunes ponctuelles'],
+        ['Participe peu en classe, implication à renforcer.','📈 Implication à renforcer'],
+        ['A du mal à mémoriser les textes arabes, aide et écoute conseillées.','⚠ Mémorisation difficile'],
+        ['Résultats insuffisants, révision approfondie urgente à la maison.','⚠ Révision urgente'],
+        ['Doit s\'impliquer davantage pour atteindre son plein potentiel.','⚠ Implication insuffisante'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['Récitation excellente, tajwid impeccable, mémorisation rapide et solide.','⭐⭐⭐ Tajwid impeccable'],
+        ['Très belle tilawa, voix agréable, applique bien les règles de tajwid.','⭐⭐⭐ Très belle tilawa'],
+        ['A mémorisé toutes les sourates demandées, excellent travail !','⭐⭐⭐ Tout mémorisé'],
+        ['Prononce bien les lettres arabes, solide base pour la récitation.','⭐⭐⭐ Prononciation solide'],
+        ['Applique correctement les règles du noon saakin et du tanwin.','⭐⭐⭐ Noon saakin & tanwin'],
+        ['Mémorise rapidement et avec précision, excellent niveau.','⭐⭐ Mémorisation rapide'],
+        ['Récite avec fluidité et respect des règles de base du tajwid.','⭐⭐ Fluidité et tajwid'],
+        ['Belle voix, à travailler la régularité de la mémorisation.','⭐⭐ Belle voix'],
+        ['Bonne mémorisation, récitation correcte avec quelques ajustements.','⭐⭐ Ajustements mineurs'],
+        ['Fait des efforts de mémorisation, des progrès visibles.','⭐ Efforts visibles'],
+        ['Récite correctement avec le soutien de la révision familiale.','⭐ Soutien familial'],
+        ['Mémorisation en progrès, à continuer la révision régulière.','⭐ En progrès'],
+        ['Quelques hésitations lors de la récitation, révision conseillée.','⭐ Quelques hésitations'],
+        ['Mémorise bien mais applique insuffisamment les règles de tajwid.','📈 Tajwid à appliquer'],
+        ['Oublie parfois certains versets, révision régulière indispensable.','📈 Oublis partiels'],
+        ['Confond certains passages similaires, écoute quotidienne recommandée.','📈 Passages similaires'],
+        ['Mémorisation lente, besoin d\'un encadrement à la maison.','📈 Mémorisation lente'],
+        ['Doit réviser plus souvent pour maintenir ce qui a été mémorisé.','⚠ Révision insuffisante'],
+        ['A du mal à retenir les nouvelles sourates, soutien familial nécessaire.','⚠ Rétention difficile'],
+        ['Faible mémorisation ce semestre, engagement renforcé demandé.','⚠ Faible mémorisation'],
+      ],
+    },
+    continu: _OBS_CONTINU,
+    presence: _OBS_PRESENCE,
+    prof: _OBS_PROF,
+  },
+  3: {
+    arabe: {
+      0: [
+        ['','— obs —'],
+        ['Lecture impeccable, compréhension approfondie et analyse remarquable.','⭐⭐⭐ Analyse remarquable'],
+        ['Lit avec expressivité et précision, analyse finement les textes.','⭐⭐⭐ Analyse fine'],
+        ['Très bon niveau de lecture, comprend l\'implicite et l\'explicite.','⭐⭐⭐ Implicite et explicite'],
+        ['Pose des questions profondes sur les textes, curiosité intellectuelle.','⭐⭐⭐ Curiosité littéraire'],
+        ['Fait des connexions pertinentes entre les textes et son vécu.','⭐⭐⭐ Liens pertinents'],
+        ['Lecture fluide, dégagement pertinent des idées principales et secondaires.','⭐⭐ Idées principales'],
+        ['Bonne lecture, analyse correcte des textes étudiés en classe.','⭐⭐ Analyse correcte'],
+        ['Très bon esprit d\'analyse, dépasse souvent les attentes du niveau.','⭐⭐ Dépasse les attentes'],
+        ['Belle progression dans la compréhension des textes littéraires.','⭐⭐ Belle progression'],
+        ['Comprend globalement les textes et repère bien les informations clés.','⭐⭐ Informations clés'],
+        ['Progresse, la compréhension s\'améliore avec un travail régulier.','⭐ En amélioration'],
+        ['Fait des efforts mais des difficultés persistent avec les textes longs.','⭐ Efforts réels'],
+        ['Lecture correcte mais analyse encore superficielle, à approfondir.','⭐ Analyse superficielle'],
+        ['En progrès, à continuer à lire régulièrement pour consolider.','⭐ À consolider'],
+        ['Lit correctement mais peine à extraire les idées clés, méthode à voir.','📈 Méthode à travailler'],
+        ['Compréhension limitée par un manque de vocabulaire, lecture conseillée.','📈 Vocabulaire limité'],
+        ['A du mal avec la compréhension implicite, exercices conseillés.','📈 Compréhension implicite'],
+        ['Difficultés notables en lecture, révision urgente recommandée.','⚠ Difficultés notables'],
+        ['Doit lire davantage de textes arabes pour améliorer sa compréhension.','⚠ Lecture à augmenter'],
+        ['Doit travailler la méthode de synthèse pour les textes longs.','⚠ Synthèse à travailler'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['S\'exprime avec éloquence et précision, niveau de langue remarquable.','⭐⭐⭐ Éloquence remarquable'],
+        ['Prend la parole avec aisance, argumente avec clarté et logique.','⭐⭐⭐ Argumentation claire'],
+        ['Très belle maîtrise des registres de langue, excellent pour ce niveau.','⭐⭐⭐ Registres de langue'],
+        ['Utilise des expressions idiomatiques arabes avec justesse.','⭐⭐⭐ Expressions idiomatiques'],
+        ['Prend des initiatives à l\'oral, leadership pédagogique à encourager.','⭐⭐⭐ Leadership oral'],
+        ['S\'exprime avec fluidité, formule des idées complexes correctement.','⭐⭐ Idées complexes'],
+        ['Très bonne participation, interventions pertinentes et bien formulées.','⭐⭐ Pertinent et formulé'],
+        ['Progression remarquable dans la prise de parole depuis la rentrée.','⭐⭐ Progression remarquable'],
+        ['S\'exprime correctement, fait des efforts de structuration du discours.','⭐⭐ Discours structuré'],
+        ['Bonne participation orale, à enrichir davantage le vocabulaire utilisé.','⭐⭐ Vocabulaire à enrichir'],
+        ['S\'exprime avec les structures de base, à travailler la complexité.','⭐ Structures de base'],
+        ['Participe lorsque sollicité, réponses correctes mais à développer.','⭐ Développement nécessaire'],
+        ['Expression orale en amélioration, à pratiquer davantage hors cours.','⭐ En amélioration'],
+        ['Doit préparer des interventions structurées pour gagner en aisance.','⭐ Préparation à faire'],
+        ['Difficultés à formuler des idées développées à l\'oral, aide conseillée.','📈 Développement difficile'],
+        ['Timidité excessive qui freine l\'expression, mise en confiance nécessaire.','📈 Timidité à surmonter'],
+        ['Comprend bien mais les productions orales restent limitées.','📈 Productions limitées'],
+        ['Doit s\'entraîner à construire des exposés oraux en arabe.','⚠ Exposés à préparer'],
+        ['Expression orale insuffisante, pratique quotidienne recommandée.','⚠ Pratique insuffisante'],
+        ['Manque de vocabulaire académique, lectures arabes fortement conseillées.','⚠ Vocabulaire académique'],
+      ],
+      2: [
+        ['','— obs —'],
+        ['Production écrite excellente, style recherché, précis et très cohérent.','⭐⭐⭐ Style recherché'],
+        ['Maîtrise parfaite de la rédaction arabe, textes riches et très structurés.','⭐⭐⭐ Maîtrise parfaite'],
+        ['Maîtrise les différents types de textes (descriptif, narratif, argumentatif).','⭐⭐⭐ Types de textes'],
+        ['Style personnel intéressant, grande maturité dans l\'expression écrite.','⭐⭐⭐ Maturité rédactionnelle'],
+        ['Très belle progression dans la qualité des productions écrites.','⭐⭐⭐ Belle progression'],
+        ['Rédige avec aisance et créativité, très bon niveau de langue écrit.','⭐⭐ Créativité'],
+        ['Productions bien construites, vocabulaire académique bien maîtrisé.','⭐⭐ Vocabulaire académique'],
+        ['Bonne rédaction, idées bien organisées et expressions soignées.','⭐⭐ Organisation soignée'],
+        ['Utilise les connecteurs logiques avec pertinence, structure claire.','⭐⭐ Connecteurs logiques'],
+        ['Très bonne orthographe dans les productions, atout remarquable.','⭐⭐ Orthographe solide'],
+        ['En progrès à l\'écrit, les textes gagnent en richesse et en organisation.','⭐ En progrès'],
+        ['Fait des efforts rédactionnels, des progrès visibles depuis la rentrée.','⭐ Efforts visibles'],
+        ['Productions correctes mais manquant de profondeur, à enrichir.','⭐ Manque de profondeur'],
+        ['Doit relire et corriger ses productions avant de les remettre.','⭐ Relecture à systématiser'],
+        ['Difficultés à développer les idées à l\'écrit, planification conseillée.','📈 Développement limité'],
+        ['Manque de vocabulaire avancé, lecture de textes arabes recommandée.','📈 Vocabulaire avancé'],
+        ['L\'organisation des idées à l\'écrit est à retravailler.','📈 Organisation à revoir'],
+        ['Erreurs récurrentes de syntaxe, révision des règles grammaticales.','⚠ Syntaxe à revoir'],
+        ['Productions trop courtes, doit apprendre à développer ses arguments.','⚠ À développer'],
+        ['Expression écrite insuffisante, entraînement régulier indispensable.','⚠ Entraînement nécessaire'],
+      ],
+      3: [
+        ['','— obs —'],
+        ['Imlaa parfait, orthographe arabe totalement maîtrisée, bravo !','⭐⭐⭐ Orthographe maîtrisée'],
+        ['Très peu de fautes, maîtrise quasi-totale des règles orthographiques.','⭐⭐⭐ Quasi sans fautes'],
+        ['Très bonne maîtrise de l\'orthographe des formes verbales.','⭐⭐⭐ Formes verbales'],
+        ['Progrès remarquables sur les règles du pluriel, excellent travail.','⭐⭐⭐ Pluriel maîtrisé'],
+        ['Belle progression dans la maîtrise de l\'imlaa depuis la rentrée.','⭐⭐⭐ Belle progression'],
+        ['Bonne orthographe arabe, maîtrise des règles d\'imlaa avancées.','⭐⭐ Règles avancées'],
+        ['Dictée réussie, bonne application des règles du hamza et du tanwin.','⭐⭐ Hamza & tanwin'],
+        ['Applique avec rigueur les règles étudiées, résultats en amélioration.','⭐⭐ Application rigoureuse'],
+        ['Résultats satisfaisants, fautes rares et en nette diminution.','⭐⭐ Fautes en diminution'],
+        ['Fait l\'effort d\'identifier et corriger ses propres erreurs, bien.','⭐⭐ Auto-correction'],
+        ['Progrès nets en orthographe, travail régulier bien payant.','⭐ Progrès nets'],
+        ['Des efforts visibles, l\'imlaa s\'améliore sensiblement.','⭐ Amélioration sensible'],
+        ['Quelques erreurs sur les règles avancées, révision ciblée conseillée.','⭐ Règles avancées'],
+        ['Confond encore les règles du hamza al-wasl et al-qat\', à réviser.','📈 Hamza à distinguer'],
+        ['Imlaa en progrès mais des erreurs persistantes sur les mots complexes.','📈 Mots complexes'],
+        ['Omet parfois les signes diacritiques importants, précision nécessaire.','📈 Signes diacritiques'],
+        ['Lacunes dans les règles avancées d\'orthographe, travail nécessaire.','⚠ Lacunes avancées'],
+        ['Des erreurs fréquentes, révision systématique des règles recommandée.','⚠ Révision systématique'],
+        ['Résultats insuffisants en imlaa, entraînement quotidien indispensable.','⚠ Entraînement quotidien'],
+        ['Doit consolider les bases orthographiques avant d\'aborder l\'avancé.','⚠ Bases à consolider'],
+      ],
+      4: [
+        ['','— obs —'],
+        ['Calligraphie exceptionnelle, maîtrise remarquable du style naskhî.','⭐⭐⭐ Style naskhî maîtrisé'],
+        ['Très beau khatt, écriture élégante, proportions parfaites.','⭐⭐⭐ Proportions parfaites'],
+        ['Produit des travaux de calligraphie d\'une belle qualité artistique.','⭐⭐⭐ Qualité artistique'],
+        ['Bonne connaissance des variations stylistiques des lettres, excellent.','⭐⭐⭐ Variations stylistiques'],
+        ['Belle progression dans la maîtrise du khatt depuis la rentrée.','⭐⭐⭐ Belle progression'],
+        ['Écriture soignée et régulière, très bon niveau de calligraphie.','⭐⭐ Très bon niveau'],
+        ['Khatt de qualité, lettres bien liées et bien proportionnées.','⭐⭐ Bien liées'],
+        ['Calligraphie propre, efforts constants et réguliers à souligner.','⭐⭐ Efforts constants'],
+        ['Bonne maîtrise de l\'écriture arabe, présentations très soignées.','⭐⭐ Présentations soignées'],
+        ['Très bonne maîtrise du style calligraphique enseigné, félicitations !','⭐⭐ Style maîtrisé'],
+        ['En progrès, le khatt gagne en régularité et en harmonie.','⭐ En progrès'],
+        ['Fait des efforts de présentation, l\'écriture s\'améliore notablement.','⭐ Amélioration notable'],
+        ['Quelques irrégularités dans la taille des lettres, à corriger.','⭐ Taille irrégulière'],
+        ['Écriture globalement correcte mais manque encore de régularité.','📈 Régularité à travailler'],
+        ['La jonction des lettres laisse à désirer, exercices recommandés.','📈 Jonction à améliorer'],
+        ['Écriture trop rapide et négligée, soin à apporter lors du khatt.','📈 Soin à apporter'],
+        ['Difficultés persistantes, exercices quotidiens de calligraphie nécessaires.','⚠ Exercices quotidiens'],
+        ['Doit s\'investir davantage dans les exercices de calligraphie.','⚠ Investissement requis'],
+        ['Doit maintenir un entraînement régulier pour progresser.','⚠ Entraînement à maintenir'],
+        ['Khatt à améliorer, effort de rigueur et de régularité demandé.','⚠ Rigueur demandée'],
+      ],
+    },
+    islami: {
+      0: [
+        ['','— obs —'],
+        ['Excellent niveau en tarbiya, réflexion approfondie et rigueur islamique.','⭐⭐⭐ Réflexion approfondie'],
+        ['Maîtrise parfaite des notions islamiques avancées, élève très sérieux.','⭐⭐⭐ Notions avancées'],
+        ['Réflexion islamique mature et nuancée, élève très prometteur.','⭐⭐⭐ Réflexion mature'],
+        ['Connaissance approfondie du sira du Prophète ﷺ, remarquable.','⭐⭐⭐ Sira du Prophète'],
+        ['Belle application des valeurs islamiques dans son comportement.','⭐⭐⭐ Valeurs appliquées'],
+        ['Très bonne connaissance de la théologie islamique pour son niveau.','⭐⭐ Théologie solide'],
+        ['Analyse les notions islamiques avec pertinence et profondeur.','⭐⭐ Analyse pertinente'],
+        ['Bonne maîtrise des leçons, fait des liens entre les différentes notions.','⭐⭐ Liens entre notions'],
+        ['Assimile bien les enseignements, les applique dans sa réflexion.','⭐⭐ Enseignements assimilés'],
+        ['Très bonne évolution dans la compréhension des notions islamiques.','⭐⭐ Belle évolution'],
+        ['Des efforts visibles, la compréhension des notions s\'améliore.','⭐ Compréhension croissante'],
+        ['Bonne participation, des questions et réflexions pertinentes en classe.','⭐ Questions pertinentes'],
+        ['Retient les notions essentielles mais manque de profondeur.','⭐ Base acquise'],
+        ['Fait preuve d\'un intérêt sincère pour les questions islamiques.','⭐ Intérêt sincère'],
+        ['Participe peu en classe, davantage d\'implication est souhaitable.','📈 Implication à renforcer'],
+        ['Doit approfondir la compréhension au-delà de la simple mémorisation.','📈 Compréhension à approfondir'],
+        ['A du mal avec les notions abstraites, exemples concrets à travailler.','📈 Notions abstraites'],
+        ['Lacunes dans certains chapitres du programme, révision recommandée.','⚠ Lacunes par chapitre'],
+        ['Résultats insuffisants, engagement plus sérieux nécessaire.','⚠ Engagement insuffisant'],
+        ['Doit revoir les leçons en profondeur et pas seulement les mémoriser.','⚠ Compréhension vs mémoire'],
+      ],
+      1: [
+        ['','— obs —'],
+        ['Tilawa excellente, tajwid parfaitement maîtrisé, récitation remarquable.','⭐⭐⭐ Tajwid parfait'],
+        ['Applique avec précision les règles du tajwid avancées, masha\'Allah.','⭐⭐⭐ Règles avancées'],
+        ['Très bonne maîtrise du qalqala, de la ghunna et des madds.','⭐⭐⭐ Qalqala, ghunna, madd'],
+        ['Belle voix et belle intention dans la récitation, masha\'Allah.','⭐⭐⭐ Belle voix et intention'],
+        ['Très belle maîtrise des règles du madd, c\'est un vrai point fort.','⭐⭐⭐ Madd maîtrisé'],
+        ['Récite avec fluidité et expressivité, très bon niveau de tilawa.','⭐⭐ Fluidité et expressivité'],
+        ['Bonne application du tajwid, mémorisation solide et fidèle.','⭐⭐ Tajwid et mémorisation'],
+        ['Récitation correcte avec une bonne maîtrise des règles de base.','⭐⭐ Règles de base'],
+        ['Applique correctement les règles du noon saakin et du tanwin.','⭐⭐ Noon saakin & tanwin'],
+        ['Progression très nette dans l\'application des règles de tajwid.','⭐⭐ Progression nette'],
+        ['Fait des efforts pour appliquer les règles de tajwid, en progrès.','⭐ Efforts d\'application'],
+        ['Récite correctement, quelques règles de tajwid avancées à consolider.','⭐ Règles avancées'],
+        ['Des hésitations sur certaines règles, révision systématique conseillée.','⭐ Hésitations ponctuelles'],
+        ['Mémorise bien mais applique insuffisamment les règles de tajwid.','📈 Application du tajwid'],
+        ['Confond certaines règles (idgham, ikhfaa), entraînement ciblé.','📈 Idgham & ikhfaa'],
+        ['Récitation hésitante, écoute quotidienne de récitateurs recommandée.','📈 Récitation hésitante'],
+        ['Des lacunes dans les règles de tajwid, travail de fond nécessaire.','⚠ Lacunes en tajwid'],
+        ['Mémorisation insuffisante, révision régulière et soutien familial.','⚠ Mémorisation insuffisante'],
+        ['Difficultés persistantes, écoute quotidienne indispensable.','⚠ Écoute quotidienne'],
+        ['Doit s\'entraîner à identifier les règles lors de la récitation.','⚠ Identification des règles'],
+      ],
+    },
+    continu: _OBS_CONTINU,
+    presence: _OBS_PRESENCE,
+    prof: _OBS_PROF,
+  },
+};
+
+const NVCOL = {1:'#2e7d32',2:'#6a1b9a',3:'#1a2e5a'};
+
+let state = {niveau:1, eleves:{1:[],2:[],3:[]}, editIdx:null};
+
+// ── UTILS ──────────────────────────────────────────────────
+function pn(v){const n=parseFloat(v);return(!isNaN(n)&&n>=0&&n<=20)?n:null;}
+function calcAvg(notes){const v=notes.map(pn).filter(x=>x!==null);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null;}
+function avgChip(v){if(v===null)return '<span class="avg-chip" style="background:#f1f5f9;color:#64748b">—</span>';const cls=v>=14?'avg-good':v>=10?'avg-mid':'avg-low';return `<span class="avg-chip ${cls}">${v.toFixed(2)}</span>`;}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.className='toast',3200);
+}
+
+// ── NAVIGATION ──────────────────────────────────────────────
+function showTab(tab){
+  ['saisie','import','export'].forEach(t=>{
+    document.getElementById(`tab-${t}`).style.display=t===tab?'flex':'none';
+    if(t==='saisie')document.getElementById(`tab-${t}`).style.display=t===tab?'flex':'none';
+  });
+  document.getElementById('tab-saisie').style.display=tab==='saisie'?'flex':'none';
+  document.getElementById('tab-import').style.display=tab==='import'?'block':'none';
+  document.getElementById('tab-export').style.display=tab==='export'?'block':'none';
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['saisie','import','export'][i]===tab);
+  });
+}
+document.getElementById('tab-saisie').style.display='flex';
+document.getElementById('tab-saisie').style.flexDirection='column';
+
+function setNiveau(n){
+  state.niveau=n;
+  document.querySelectorAll('.niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
+  document.getElementById('toolbar-title').textContent=`Niveau ${n} — Élèves`;
+  renderTable();
+}
+
+// ── TABLE ──────────────────────────────────────────────────
+function renderTable(){
+  const eleves=state.eleves[state.niveau];
+  const mats=MATIERES[state.niveau];
+  document.getElementById('empty-state').style.display=eleves.length?'none':'flex';
+  document.getElementById('eleves-table').style.display=eleves.length?'table':'none';
+  updateStats();
+  updateCounts();
+  if(!eleves.length)return;
+  const tbody=document.getElementById('eleves-tbody');
+  tbody.innerHTML='';
+  eleves.forEach((e,i)=>{
+    const avg_ar=calcAvg(e.notes_arabe||[]);
+    const avg_isl=calcAvg(e.notes_islami||[]);
+    const nc=pn(e.note_continu),np=pn(e.note_presence);
+    const all=[avg_ar,avg_isl,nc,np].filter(x=>x!==null);
+    const avg_gen=all.length?+(all.reduce((a,b)=>a+b,0)/all.length).toFixed(2):null;
+    tbody.innerHTML+=`<tr>
+      <td style="color:var(--muted);font-weight:700">${i+1}</td>
+      <td style="font-weight:700">${e.nom||'—'}</td>
+      <td>${e.classe||'—'}</td>
+      <td>${avgChip(avg_ar)}</td>
+      <td>${avgChip(avg_isl)}</td>
+      <td>${nc!==null?nc:'—'}</td>
+      <td>${np!==null?np:'—'}</td>
+      <td>${avgChip(avg_gen)}</td>
+      <td><div class="action-td">
+        <button class="btn btn-outline btn-sm" onclick="editEleve(${i})">✏️</button>
+        <button class="btn btn-primary btn-sm" onclick="printOne(${i})">🖨️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEleve(${i})">🗑</button>
+      </div></td>
+    </tr>`;
+  });
+}
+
+function updateStats(){
+  const eleves=state.eleves[state.niveau];
+  document.getElementById('stat-total').textContent=eleves.length;
+  if(!eleves.length){document.getElementById('stat-avg').textContent='—';document.getElementById('stat-good').textContent=0;document.getElementById('stat-low').textContent=0;return;}
+  const gens=eleves.map(e=>{
+    const all=[calcAvg(e.notes_arabe||[]),calcAvg(e.notes_islami||[]),pn(e.note_continu),pn(e.note_presence)].filter(x=>x!==null);
+    return all.length?+(all.reduce((a,b)=>a+b,0)/all.length).toFixed(2):null;
+  }).filter(x=>x!==null);
+  const avg=gens.length?+(gens.reduce((a,b)=>a+b,0)/gens.length).toFixed(2):null;
+  document.getElementById('stat-avg').textContent=avg!==null?avg.toFixed(2):'—';
+  document.getElementById('stat-good').textContent=gens.filter(x=>x>=14).length;
+  document.getElementById('stat-low').textContent=gens.filter(x=>x<10).length;
+}
+
+function updateCounts(){
+  [1,2,3].forEach(n=>{document.getElementById(`cnt-${n}`).textContent=state.eleves[n].length;});
+}
+
+// ── FORM ──────────────────────────────────────────────────
+function openForm(idx=null){
+  state.editIdx=idx;
+  const e=idx!==null?state.eleves[state.niveau][idx]:{};
+  const mats=MATIERES[state.niveau];
+  const nv=state.niveau; const col=NVCOL[nv];
+  document.getElementById('form-title').textContent=idx!==null?`Modifier — ${e.nom||''}`:'Nouvel élève';
+
+  let html=`
+  <div class="form-section">
+    <h4 style="color:${col}">Informations générales</h4>
+    <div class="form-grid">
+      <div class="form-group"><label>Nom complet (Français)</label><input id="f-nom" value="${e.nom||''}" placeholder="Nom de l'élève"/></div>
+      <div class="form-group"><label>الاسم الكامل (عربي)</label><input id="f-nom-ar" value="${e.nom_ar||''}" placeholder="اسم الطالب بالعربية" dir="rtl" style="font-family:'Tajawal',sans-serif;font-size:14px"/></div>
+      <div class="form-group"><label>Classe / الفصل</label><input id="f-classe" value="${e.classe||''}" placeholder="Classe"/></div>
+      <div class="form-group"><label>Professeur / الأستاذ</label><input id="f-prof" value="${e.prof||''}" placeholder="Professeur"/></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h4 style="color:${col}">🔤 Langue Arabe</h4>`;
+
+  mats.arabe.forEach(([ar,fr],i)=>{
+    const note=(e.notes_arabe||[])[i]||'';
+    const obs=(e.obs_arabe||[])[i]||'';
+    const _nObs=OBS_OPTIONS[state.niveau]; const opts=(_nObs.arabe[i]||_nObs.arabe[4]||[['','—obs—']]);
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+        <span style="color:${col}">${fr}</span>
+        <span style="color:#94a3b8;font-family:'Tajawal',sans-serif">${ar}</span>
+      </div>
+      <div class="note-group">
+        <input class="note-input" id="f-ar-note-${i}" value="${note}" placeholder="— /20" oninput="updateArAvg()" style="border-color:${col}"/>
+        <select class="obs-select" id="f-ar-obs-${i}">
+          ${opts.map(([v,l])=>`<option value="${v}" ${v===obs?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  });
+  const avg_ar=calcAvg((e.notes_arabe||[]));
+  html+=`<div class="avg-display" id="f-avg-ar">Moy. Langue Arabe : ${avg_ar!==null?avg_ar.toFixed(2)+' / 20':'— / 20'}</div>
+  </div>
+
+  <div class="form-section">
+    <h4 style="color:${col}">☪️ Éducation Islamique</h4>`;
+
+  mats.islami.forEach(([ar,fr],i)=>{
+    const note=(e.notes_islami||[])[i]||'';
+    const obs=(e.obs_islami||[])[i]||'';
+    const opts=OBS_OPTIONS[state.niveau].islami[i]||OBS_OPTIONS[state.niveau].islami[0];
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+        <span style="color:${col}">${fr}</span>
+        <span style="color:#94a3b8;font-family:'Tajawal',sans-serif">${ar}</span>
+      </div>
+      <div class="note-group">
+        <input class="note-input" id="f-isl-note-${i}" value="${note}" placeholder="— /20" oninput="updateIslAvg()" style="border-color:${col}"/>
+        <select class="obs-select" id="f-isl-obs-${i}">
+          ${opts.map(([v,l])=>`<option value="${v}" ${v===obs?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  });
+  const avg_isl=calcAvg((e.notes_islami||[]));
+  html+=`<div class="avg-display" id="f-avg-isl">Moy. Islamique : ${avg_isl!==null?avg_isl.toFixed(2)+' / 20':'— / 20'}</div>
+  </div>
+
+  <div class="form-section">
+    <h4 style="color:${col}">📋 Contrôle Continu & Présence</h4>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Contrôle Continu /20</label>
+        <div class="note-group">
+          <input class="note-input" id="f-continu" value="${e.note_continu||''}" placeholder="— /20" oninput="updateGenAvg()" style="border-color:${col}"/>
+          <select class="obs-select" id="f-obs-continu">
+            ${OBS_OPTIONS[state.niveau].continu.map(([v,l])=>`<option value="${v}" ${v===(e.obs_continu||'')?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Présence & Assiduité /20</label>
+        <div class="note-group">
+          <input class="note-input" id="f-presence" value="${e.note_presence||''}" placeholder="— /20" oninput="updateGenAvg()" style="border-color:${col}"/>
+          <select class="obs-select" id="f-obs-presence">
+            ${OBS_OPTIONS[state.niveau].presence.map(([v,l])=>`<option value="${v}" ${v===(e.obs_presence||'')?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="avg-display" id="f-avg-gen" style="margin-top:12px">Moyenne Générale : — / 20</div>
+  </div>
+
+  <div class="form-section">
+    <h4 style="color:${col}">💬 Observations</h4>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Appréciation du professeur</label>
+      <select class="obs-select" id="f-obs-prof-sel" onchange="document.getElementById('f-obs-prof').value=this.value">
+        ${OBS_OPTIONS[state.niveau].prof.map(([v,l])=>`<option value="${v}" ${v===(e.obs_prof||'')?'selected':''}>${l}</option>`).join('')}
+      </select>
+      <textarea id="f-obs-prof" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:13px;margin-top:6px;resize:vertical;min-height:60px;outline:none" placeholder="Ou saisir librement...">${e.obs_prof||''}</textarea>
+    </div>
+    <div class="form-group">
+      <label>Observations des parents</label>
+      <textarea id="f-obs-parents" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:13px;resize:vertical;min-height:50px;outline:none">${e.obs_parents||''}</textarea>
+    </div>
+  </div>`;
+
+  document.getElementById('form-body').innerHTML=html;
+  document.getElementById('form-overlay').classList.add('open');
+  updateGenAvg();
+}
+
+function updateArAvg(){
+  const mats=MATIERES[state.niveau];
+  const notes=mats.arabe.map((_,i)=>document.getElementById(`f-ar-note-${i}`)?.value||'');
+  const avg=calcAvg(notes);
+  document.getElementById('f-avg-ar').textContent=`Moy. Langue Arabe : ${avg!==null?avg.toFixed(2)+' / 20':'— / 20'}`;
+  updateGenAvg();
+}
+function updateIslAvg(){
+  const mats=MATIERES[state.niveau];
+  const notes=mats.islami.map((_,i)=>document.getElementById(`f-isl-note-${i}`)?.value||'');
+  const avg=calcAvg(notes);
+  document.getElementById('f-avg-isl').textContent=`Moy. Islamique : ${avg!==null?avg.toFixed(2)+' / 20':'— / 20'}`;
+  updateGenAvg();
+}
+function updateGenAvg(){
+  const mats=MATIERES[state.niveau];
+  const nar=mats.arabe.map((_,i)=>document.getElementById(`f-ar-note-${i}`)?.value||'');
+  const ni=mats.islami.map((_,i)=>document.getElementById(`f-isl-note-${i}`)?.value||'');
+  const nc=document.getElementById('f-continu')?.value||'';
+  const np=document.getElementById('f-presence')?.value||'';
+  const all=[calcAvg(nar),calcAvg(ni),pn(nc),pn(np)].filter(x=>x!==null);
+  const avg=all.length?+(all.reduce((a,b)=>a+b,0)/all.length).toFixed(2):null;
+  document.getElementById('f-avg-gen').textContent=`Moyenne Générale : ${avg!==null?avg.toFixed(2)+' / 20':'— / 20'}`;
+}
+
+function readForm(){
+  const mats=MATIERES[state.niveau];
+  return {
+    nom:document.getElementById('f-nom').value,
+    nom_ar:document.getElementById('f-nom-ar').value,
+    prof:document.getElementById('f-prof').value,
+    classe:document.getElementById('f-classe').value,
+    notes_arabe:mats.arabe.map((_,i)=>document.getElementById(`f-ar-note-${i}`)?.value||''),
+    obs_arabe:mats.arabe.map((_,i)=>document.getElementById(`f-ar-obs-${i}`)?.value||''),
+    notes_islami:mats.islami.map((_,i)=>document.getElementById(`f-isl-note-${i}`)?.value||''),
+    obs_islami:mats.islami.map((_,i)=>document.getElementById(`f-isl-obs-${i}`)?.value||''),
+    note_continu:document.getElementById('f-continu')?.value||'',
+    obs_continu:document.getElementById('f-obs-continu')?.value||'',
+    note_presence:document.getElementById('f-presence')?.value||'',
+    obs_presence:document.getElementById('f-obs-presence')?.value||'',
+    obs_prof:document.getElementById('f-obs-prof')?.value||'',
+    obs_parents:document.getElementById('f-obs-parents')?.value||'',
+  };
+}
+
+function saveEleve(){
+  const e=readForm();
+  if(!e.nom){toast('Nom obligatoire','error');return;}
+  if(state.editIdx!==null) state.eleves[state.niveau][state.editIdx]=e;
+  else state.eleves[state.niveau].push(e);
+  closeForm(); renderTable();
+  toast(state.editIdx!==null?'✅ Modifié avec succès':'✅ Élève ajouté');
+}
+
+async function saveAndPrint(){
+  const e=readForm();
+  if(!e.nom){toast('Nom obligatoire','error');return;}
+  if(state.editIdx!==null) state.eleves[state.niveau][state.editIdx]=e;
+  else state.eleves[state.niveau].push(e);
+  closeForm(); renderTable();
+  await printEleve(e);
+}
+
+function closeForm(){document.getElementById('form-overlay').classList.remove('open');}
+
+function editEleve(i){openForm(i);}
+function deleteEleve(i){
+  if(!confirm('Supprimer cet élève ?'))return;
+  state.eleves[state.niveau].splice(i,1);
+  renderTable(); toast('🗑 Élève supprimé');
+}
+function clearAll(){
+  if(!confirm(`Supprimer tous les ${state.eleves[state.niveau].length} élèves du Niveau ${state.niveau} ?`))return;
+  state.eleves[state.niveau]=[];
+  renderTable(); toast('🗑 Liste vidée');
+}
+
+// ── PDF / EXPORT ──────────────────────────────────────────
+async function printEleve(e){
+  try{
+    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eleves:[e],niveau:state.niveau})});
+    if(!res.ok)throw new Error('Erreur PDF');
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`bulletin_${(e.nom||'eleve').replace(/ /g,'_')}.pdf`;
+    a.click(); URL.revokeObjectURL(url);
+    toast('🖨️ PDF téléchargé !');
+  }catch(ex){toast('Erreur: '+ex.message,'error');}
+}
+
+async function printOne(i){await printEleve(state.eleves[state.niveau][i]);}
+
+async function exportAllPDF(){
+  const eleves=state.eleves[state.niveau];
+  if(!eleves.length){toast('Aucun élève','error');return;}
+  try{
+    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eleves,niveau:state.niveau,merge:true})});
+    const blob=await res.blob();
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=`bulletins_niveau${state.niveau}.pdf`;a.click();
+    toast(`🗂️ ${eleves.length} bulletins PDF exportés !`);
+  }catch(ex){toast('Erreur: '+ex.message,'error');}
+}
+
+async function exportAll(){
+  const payload={};
+  [1,2,3].forEach(n=>{if(state.eleves[n].length) payload[n]=state.eleves[n];});
+  if(!Object.keys(payload).length){toast('Aucun élève','error');return;}
+  try{
+    const res=await fetch('/api/generate_excel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const blob=await res.blob();
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='bulletins_tous_niveaux.xlsx';a.click();
+    toast('📊 Excel exporté !');
+  }catch(ex){toast('Erreur: '+ex.message,'error');}
+}
+
+function exportJSON(){
+  const data={eleves:state.eleves,date:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bulletins_sauvegarde.json';a.click();
+  toast('💾 JSON sauvegardé !');
+}
+
+async function downloadTemplate(){
+  const url=`/api/export_template_excel?niveau=${state.niveau}`;
+  const a=document.createElement('a');a.href=url;a.download=`template_niveau${state.niveau}.xlsx`;a.click();
+  toast('📋 Modèle téléchargé !');
+}
+
+// ── IMPORT ────────────────────────────────────────────────
+async function importFile(type,input){
+  const file=input.files[0]; if(!file)return;
+  const fd=new FormData(); fd.append('file',file); fd.append('niveau',state.niveau);
+  try{
+    const res=await fetch(`/api/import_${type}`,{method:'POST',body:fd});
+    const data=await res.json();
+    if(data.error){toast('Erreur: '+data.error,'error');return;}
+    const eleves=data.eleves||[];
+    state.eleves[state.niveau]=[...state.eleves[state.niveau],...eleves];
+    renderTable(); showTab('saisie');
+    toast(`✅ ${eleves.length} élève(s) importé(s) !`);
+  }catch(ex){toast('Erreur import: '+ex.message,'error');}
+  input.value='';
+}
+
+function pasteImport(){
+  try{
+    const raw=document.getElementById('paste-area').value.trim();
+    let data=JSON.parse(raw);
+    if(data.eleves) data=data.eleves;
+    if(!Array.isArray(data)) throw new Error('Doit être un tableau');
+    state.eleves[state.niveau]=[...state.eleves[state.niveau],...data];
+    renderTable(); showTab('saisie');
+    toast(`✅ ${data.length} élève(s) importé(s) !`);
+    document.getElementById('paste-area').value='';
+  }catch(ex){toast('JSON invalide: '+ex.message,'error');}
+}
+
+// ── DRAG & DROP ────────────────────────────────────────────
+['drop-xlsx','drop-json'].forEach(id=>{
+  const el=document.getElementById(id);
+  const type=id.includes('xlsx')?'xlsx':'json';
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag');});
+  el.addEventListener('dragleave',()=>el.classList.remove('drag'));
+  el.addEventListener('drop',e=>{
+    e.preventDefault();el.classList.remove('drag');
+    const file=e.dataTransfer.files[0];if(!file)return;
+    const inp=document.getElementById(`file-${type}`);
+    const dt=new DataTransfer();dt.items.add(file);inp.files=dt.files;
+    importFile(type,inp);
+  });
+});
+
+// ── INIT ──────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>
