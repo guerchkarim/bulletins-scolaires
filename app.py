@@ -375,6 +375,7 @@ def generate_pdf():
     eleves = data.get('eleves', [])
     niveau = int(data.get('niveau', 3))
     merge = data.get('merge', False)
+    inline = data.get('inline', False)   # True = ouvre dans le navigateur (impression)
 
     if not eleves:
         return jsonify({'error':'Aucun élève'}), 400
@@ -388,6 +389,7 @@ def generate_pdf():
         buf.seek(0)
         pdfs.append(buf)
 
+    as_attach = not inline
     if merge or len(pdfs)>1:
         writer=PdfWriter()
         for buf in pdfs:
@@ -395,11 +397,42 @@ def generate_pdf():
             for page in r.pages: writer.add_page(page)
         out=io.BytesIO(); writer.write(out); out.seek(0)
         fname=f"bulletins_niveau{niveau}.pdf"
-        return send_file(out, mimetype='application/pdf', as_attachment=True, download_name=fname)
+        return send_file(out, mimetype='application/pdf', as_attachment=as_attach, download_name=fname)
     else:
         nom=eleves[0].get('nom','eleve').replace(' ','_')
         fname=f"bulletin_{nom}.pdf"
-        return send_file(pdfs[0], mimetype='application/pdf', as_attachment=True, download_name=fname)
+        return send_file(pdfs[0], mimetype='application/pdf', as_attachment=as_attach, download_name=fname)
+
+
+@app.route('/api/generate_pdf_all', methods=['POST'])
+def generate_pdf_all():
+    """Génère un PDF fusionné pour tous les élèves de tous les niveaux."""
+    data = request.json
+    eleves_par_niveau = data.get('eleves', {})
+    inline = data.get('inline', False)
+    writer = PdfWriter()
+    total = 0
+    for niveau_str in ['1', '2', '3']:
+        eleves = eleves_par_niveau.get(str(niveau_str), [])
+        niveau = int(niveau_str)
+        for e in eleves:
+            buf = io.BytesIO()
+            c = pdfcanvas.Canvas(buf, pagesize=A4)
+            draw_bulletin(c, e, niveau)
+            c.save()
+            buf.seek(0)
+            r = PdfReader(buf)
+            for page in r.pages:
+                writer.add_page(page)
+            total += 1
+    if total == 0:
+        return jsonify({'error': 'Aucun élève dans aucun niveau'}), 400
+    out = io.BytesIO()
+    writer.write(out)
+    out.seek(0)
+    return send_file(out, mimetype='application/pdf',
+                     as_attachment=not inline,
+                     download_name='tous_bulletins.pdf')
 
 @app.route('/api/generate_excel', methods=['POST'])
 def generate_excel_route():

@@ -253,7 +253,12 @@ table.eleves-table tr:hover td{background:var(--n3l)}
       <div class="main-toolbar">
         <h2 id="toolbar-title">Niveau 1 — Élèves</h2>
         <button class="btn btn-primary" onclick="openForm()">＋ Nouvel élève</button>
-        <button class="btn btn-outline" onclick="exportAllPDF()">⬇ PDF tous</button>
+        <!-- Groupe Impression -->
+        <div style="display:flex;gap:4px;align-items:center;background:var(--n3l);border-radius:8px;padding:3px 6px">
+          <span style="font-size:11px;font-weight:700;color:var(--n3);white-space:nowrap">🖨️ Imprimer :</span>
+          <button class="btn btn-outline btn-sm" onclick="imprimerNiveau()" title="Imprimer tous les élèves du niveau actif">Ce niveau</button>
+          <button class="btn btn-outline btn-sm" onclick="imprimerTout()" title="Imprimer tous les niveaux">Tout</button>
+        </div>
         <button class="btn btn-gold" onclick="exportAll()">📊 Excel</button>
         <button class="btn btn-danger btn-sm" onclick="clearAll()" title="Vider la liste">🗑 Vider</button>
       </div>
@@ -319,7 +324,22 @@ table.eleves-table tr:hover td{background:var(--n3l)}
 
     <!-- EXPORT TAB -->
     <div id="tab-export" style="display:none;padding:2rem">
-      <h2 style="margin-bottom:1.5rem">Exporter les données</h2>
+      <h2 style="margin-bottom:1.5rem">Impression &amp; Export</h2>
+
+      <!-- Section Impression -->
+      <div style="background:var(--n3);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div style="color:#fff;flex:1;min-width:180px">
+          <div style="font-size:22px;margin-bottom:2px">🖨️</div>
+          <div style="font-weight:800;font-size:14px">Impression directe</div>
+          <div style="font-size:11px;opacity:.8">Ouvre le PDF dans l'onglet pour lancer l'impression navigateur</div>
+        </div>
+        <button class="btn btn-gold" onclick="imprimerNiveau()" style="white-space:nowrap">
+          🖨️ Imprimer Niveau <span id="imp-niv-lbl">1</span>
+        </button>
+        <button class="btn" style="background:#fff;color:var(--n3);font-weight:700;white-space:nowrap" onclick="imprimerTout()">
+          🖨️ Imprimer Tous les niveaux
+        </button>
+      </div>
 
       <!-- Exports rapides -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:2rem">
@@ -1021,6 +1041,9 @@ function setNiveau(n){
   state.niveau=n;
   document.querySelectorAll('.niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
   document.getElementById('toolbar-title').textContent=`Niveau ${n} — Élèves`;
+  // Sync label bouton impression dans onglet Export
+  const lbl=document.getElementById('imp-niv-lbl');
+  if(lbl) lbl.textContent=n;
   // Sync mobile niv bar
   document.querySelectorAll('#mobile-niv-bar .niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
   renderTable();
@@ -1053,9 +1076,10 @@ function renderTable(){
       <td>${np!==null?np:'—'}</td>
       <td>${avgChip(avg_gen)}</td>
       <td><div class="action-td">
-        ${e._pdf?`<span title="PDF: ${e._pdf}" style="font-size:16px;cursor:default" title="${e._pdf}">📄</span>`:''}
+        ${e._pdf?`<span title="PDF sauvegardé: ${e._pdf}" style="font-size:15px;cursor:default">📄</span>`:''}
         <button class="btn btn-outline btn-sm" onclick="editEleve(${i})">✏️</button>
-        <button class="btn btn-primary btn-sm" onclick="printOne(${i})">🖨️</button>
+        <button class="btn btn-primary btn-sm" title="Imprimer" onclick="printEleve(state.eleves[state.niveau][${i}],true)">🖨️</button>
+        <button class="btn btn-outline btn-sm" title="Télécharger PDF" onclick="printOne(${i})">⬇️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteEleve(${i})">🗑</button>
       </div></td>
     </tr>`;
@@ -1323,31 +1347,82 @@ function clearAll(){
   renderTable(); toast('🗑 Liste vidée');
 }
 
-// ── PDF / EXPORT ──────────────────────────────────────────
-async function printEleve(e){
-  try{
-    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eleves:[e],niveau:state.niveau})});
-    if(!res.ok)throw new Error('Erreur PDF');
-    const blob=await res.blob();
-    const url=URL.createObjectURL(blob);
+// ── PDF / IMPRESSION ──────────────────────────────────────
+
+/** Ouvre ou télécharge un blob PDF selon le mode (print=ouvrir, download=télécharger) */
+function _ouvrirPDF(blob, filename, modeImpr){
+  const url=URL.createObjectURL(blob);
+  if(modeImpr){
+    const win=window.open(url,'_blank');
+    // Fermer l'URL objet après quelques secondes
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+    if(!win) toast('⚠️ Activez les pop-ups pour imprimer','error');
+  } else {
     const a=document.createElement('a');
-    a.href=url;a.download=`bulletin_${(e.nom||'eleve').replace(/ /g,'_')}.pdf`;
-    a.click(); URL.revokeObjectURL(url);
-    toast('🖨️ PDF téléchargé !');
+    a.href=url; a.download=filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Imprimer / télécharger un seul élève */
+async function printEleve(e, modeImpr=false){
+  try{
+    toast('⏳ Génération PDF…');
+    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({eleves:[e],niveau:state.niveau,inline:modeImpr})});
+    if(!res.ok) throw new Error('Erreur serveur');
+    const blob=await res.blob();
+    _ouvrirPDF(blob,`bulletin_${(e.nom||'eleve').replace(/ /g,'_')}.pdf`, modeImpr);
+    toast(modeImpr?'🖨️ Ouvert pour impression':'⬇️ PDF téléchargé !');
   }catch(ex){toast('Erreur: '+ex.message,'error');}
 }
 
-async function printOne(i){await printEleve(state.eleves[state.niveau][i]);}
+/** Bouton 🖨️ dans la table → télécharge */
+async function printOne(i){await printEleve(state.eleves[state.niveau][i], false);}
 
+/** Imprimer le niveau actif (ouvre dans un onglet) */
+async function imprimerNiveau(){
+  const eleves=state.eleves[state.niveau];
+  if(!eleves.length){toast('Aucun élève dans ce niveau','error');return;}
+  toast(`⏳ Génération de ${eleves.length} bulletins Niveau ${state.niveau}…`);
+  try{
+    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({eleves,niveau:state.niveau,merge:true,inline:true})});
+    if(!res.ok) throw new Error('Erreur serveur');
+    const blob=await res.blob();
+    _ouvrirPDF(blob,`bulletins_niveau${state.niveau}.pdf`,true);
+    toast(`🖨️ ${eleves.length} bulletins prêts à imprimer (Niveau ${state.niveau})`);
+  }catch(ex){toast('Erreur: '+ex.message,'error');}
+}
+
+/** Imprimer TOUS les niveaux ensemble (ouvre dans un onglet) */
+async function imprimerTout(){
+  const total=[1,2,3].reduce((s,n)=>s+state.eleves[n].length,0);
+  if(!total){toast('Aucun élève dans aucun niveau','error');return;}
+  toast(`⏳ Génération de ${total} bulletins (tous niveaux)…`);
+  try{
+    const payload={};
+    [1,2,3].forEach(n=>{if(state.eleves[n].length) payload[n]=state.eleves[n];});
+    const res=await fetch('/api/generate_pdf_all',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({eleves:payload,inline:true})});
+    if(!res.ok) throw new Error('Erreur serveur');
+    const blob=await res.blob();
+    _ouvrirPDF(blob,'tous_bulletins.pdf',true);
+    toast(`🖨️ ${total} bulletins prêts à imprimer (tous niveaux)`);
+  }catch(ex){toast('Erreur: '+ex.message,'error');}
+}
+
+/** Télécharger PDF du niveau actif (onglet Export) */
 async function exportAllPDF(){
   const eleves=state.eleves[state.niveau];
   if(!eleves.length){toast('Aucun élève','error');return;}
+  toast(`⏳ Génération ${eleves.length} bulletins…`);
   try{
-    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({eleves,niveau:state.niveau,merge:true})});
+    const res=await fetch('/api/generate_pdf',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({eleves,niveau:state.niveau,merge:true,inline:false})});
     const blob=await res.blob();
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download=`bulletins_niveau${state.niveau}.pdf`;a.click();
-    toast(`🗂️ ${eleves.length} bulletins PDF exportés !`);
+    _ouvrirPDF(blob,`bulletins_niveau${state.niveau}.pdf`,false);
+    toast(`⬇️ ${eleves.length} bulletins PDF téléchargés !`);
   }catch(ex){toast('Erreur: '+ex.message,'error');}
 }
 
