@@ -1,6 +1,6 @@
 flask
 arabic-reshaper
-python-bidi
+python-bidi==0.4.2
 reportlab
 pypdf
 openpyxl
