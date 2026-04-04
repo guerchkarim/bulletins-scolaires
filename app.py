@@ -12,10 +12,23 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import json, os, io, base64, tempfile
+import zipfile, unicodedata, re
 from pathlib import Path
 
 app = Flask(__name__)
 BASE = Path(__file__).parent
+
+# Dossiers d'export PDF par niveau
+EXPORTS_DIR = BASE / 'exports' / 'pdf'
+for _n in [1, 2, 3]:
+    (EXPORTS_DIR / f'niv{_n}').mkdir(parents=True, exist_ok=True)
+
+def safe_filename(nom):
+    """Convertit un nom en nom de fichier safe ASCII."""
+    nom = unicodedata.normalize('NFKD', str(nom)).encode('ascii', 'ignore').decode()
+    nom = re.sub(r'[^\w\s-]', '', nom).strip()
+    nom = re.sub(r'[\s]+', '_', nom)
+    return nom or 'eleve'
 
 # ── Fonts ──────────────────────────────────────────────────
 FONTS_DIR = BASE / 'static' / 'fonts'
@@ -469,6 +482,71 @@ def export_template():
     buf=io.BytesIO(); wb.save(buf); buf.seek(0)
     return send_file(buf, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      as_attachment=True, download_name=f'template_niveau{niveau}.xlsx')
+
+@app.route('/api/save_pdf', methods=['POST'])
+def save_pdf():
+    """Génère le PDF d'un élève et le sauvegarde dans exports/pdf/niv{n}/."""
+    data = request.json
+    eleve = data.get('eleve', {})
+    niveau = int(data.get('niveau', 1))
+    if not eleve.get('nom'):
+        return jsonify({'error': 'Nom manquant'}), 400
+    buf = io.BytesIO()
+    c = pdfcanvas.Canvas(buf, pagesize=A4)
+    draw_bulletin(c, eleve, niveau)
+    c.save()
+    buf.seek(0)
+    nom_safe = safe_filename(eleve.get('nom', 'eleve'))
+    filename = f"{nom_safe}.pdf"
+    filepath = EXPORTS_DIR / f'niv{niveau}' / filename
+    with open(filepath, 'wb') as fout:
+        fout.write(buf.read())
+    return jsonify({'success': True, 'filename': filename, 'niveau': niveau})
+
+@app.route('/api/list_pdfs', methods=['GET'])
+def list_pdfs():
+    """Retourne la liste des PDFs sauvegardés par niveau."""
+    result = {}
+    for n in [1, 2, 3]:
+        folder = EXPORTS_DIR / f'niv{n}'
+        folder.mkdir(parents=True, exist_ok=True)
+        files = sorted([f.name for f in folder.iterdir() if f.suffix == '.pdf'])
+        result[str(n)] = files
+    return jsonify(result)
+
+@app.route('/api/get_pdf/<int:niveau>/<path:filename>', methods=['GET'])
+def get_pdf(niveau, filename):
+    """Télécharge un PDF sauvegardé."""
+    filename = Path(filename).name  # sécurité anti path traversal
+    filepath = EXPORTS_DIR / f'niv{niveau}' / filename
+    if not filepath.exists():
+        return jsonify({'error': 'Fichier non trouvé'}), 404
+    return send_file(str(filepath), mimetype='application/pdf',
+                     as_attachment=True, download_name=filename)
+
+@app.route('/api/download_zip/<int:niveau>', methods=['GET'])
+def download_zip(niveau):
+    """Télécharge un ZIP de tous les PDFs (niveau 0 = tous les niveaux)."""
+    if niveau == 0:
+        folders = [(n, EXPORTS_DIR / f'niv{n}') for n in [1, 2, 3]]
+        zip_name = 'bulletins_tous_niveaux.zip'
+    else:
+        folders = [(niveau, EXPORTS_DIR / f'niv{niveau}')]
+        zip_name = f'bulletins_niv{niveau}.zip'
+    buf = io.BytesIO()
+    total = 0
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for n, folder in folders:
+            if folder.exists():
+                for pdf_file in sorted(folder.iterdir()):
+                    if pdf_file.suffix == '.pdf':
+                        zf.write(pdf_file, f'niv{n}/{pdf_file.name}')
+                        total += 1
+    if total == 0:
+        return jsonify({'error': 'Aucun PDF sauvegardé'}), 404
+    buf.seek(0)
+    return send_file(buf, mimetype='application/zip',
+                     as_attachment=True, download_name=zip_name)
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=7860)

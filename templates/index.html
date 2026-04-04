@@ -320,7 +320,9 @@ table.eleves-table tr:hover td{background:var(--n3l)}
     <!-- EXPORT TAB -->
     <div id="tab-export" style="display:none;padding:2rem">
       <h2 style="margin-bottom:1.5rem">Exporter les données</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+
+      <!-- Exports rapides -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:2rem">
         <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid var(--border);text-align:center">
           <div style="font-size:40px;margin-bottom:12px">🗂️</div>
           <h3 style="margin-bottom:8px">PDF — Niveau actif</h3>
@@ -344,6 +346,26 @@ table.eleves-table tr:hover td{background:var(--n3l)}
           <h3 style="margin-bottom:8px">Modèle Excel vide</h3>
           <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Télécharge le modèle pour le remplir manuellement</p>
           <button class="btn btn-outline" style="width:100%" onclick="downloadTemplate()">Télécharger modèle</button>
+        </div>
+      </div>
+
+      <!-- Dossier PDF par niveau -->
+      <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden">
+        <div style="background:var(--n3);color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:24px">📁</span>
+            <div>
+              <div style="font-weight:800;font-size:15px">Dossier PDF — Bulletins sauvegardés</div>
+              <div style="font-size:11px;opacity:.8">Généré automatiquement à chaque enregistrement d'élève</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="loadPdfFolder()">🔄 Actualiser</button>
+            <button class="btn btn-gold btn-sm" onclick="downloadZip(0)">⬇️ Tout télécharger (.zip)</button>
+          </div>
+        </div>
+        <div id="pdf-folder-content" style="padding:1.5rem">
+          <div style="text-align:center;color:var(--muted);padding:2rem">Cliquez sur Actualiser pour voir les PDFs sauvegardés</div>
         </div>
       </div>
     </div>
@@ -989,6 +1011,8 @@ function showTab(tab){
   // Show/hide mobile niv bar only on saisie tab
   const nivBar=document.getElementById('mobile-niv-bar');
   if(nivBar) nivBar.style.display = tab==='saisie' ? '' : 'none';
+  // Auto-charger le dossier PDF quand on ouvre l'onglet Export
+  if(tab==='export') loadPdfFolder();
 }
 document.getElementById('tab-saisie').style.display='flex';
 document.getElementById('tab-saisie').style.flexDirection='column';
@@ -1029,6 +1053,7 @@ function renderTable(){
       <td>${np!==null?np:'—'}</td>
       <td>${avgChip(avg_gen)}</td>
       <td><div class="action-td">
+        ${e._pdf?`<span title="PDF: ${e._pdf}" style="font-size:16px;cursor:default" title="${e._pdf}">📄</span>`:''}
         <button class="btn btn-outline btn-sm" onclick="editEleve(${i})">✏️</button>
         <button class="btn btn-primary btn-sm" onclick="printOne(${i})">🖨️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteEleve(${i})">🗑</button>
@@ -1253,13 +1278,26 @@ function readForm(){
   };
 }
 
-function saveEleve(){
+async function saveEleve(){
   const e=readForm();
   if(!e.nom){toast('Nom obligatoire','error');return;}
   if(state.editIdx!==null) state.eleves[state.niveau][state.editIdx]=e;
   else state.eleves[state.niveau].push(e);
   closeForm(); renderTable();
-  toast(state.editIdx!==null?'✅ Modifié avec succès':'✅ Élève ajouté');
+  toast(state.editIdx!==null?'✅ Modifié — génération PDF…':'✅ Ajouté — génération PDF…');
+  // Sauvegarde automatique du PDF dans le dossier serveur
+  try{
+    const res=await fetch('/api/save_pdf',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({eleve:e,niveau:state.niveau})});
+    const json=await res.json();
+    if(json.success){
+      // Marquer l'élève comme "PDF sauvegardé"
+      const idx=state.editIdx!==null?state.editIdx:state.eleves[state.niveau].length-1;
+      state.eleves[state.niveau][idx]._pdf=json.filename;
+      renderTable();
+      toast(`📄 PDF niv${state.niveau}/${json.filename} sauvegardé !`);
+    }else{toast('⚠️ PDF non sauvegardé: '+(json.error||'erreur'),'error');}
+  }catch(ex){toast('⚠️ Erreur PDF: '+ex.message,'error');}
 }
 
 async function saveAndPrint(){
@@ -1338,6 +1376,63 @@ async function downloadTemplate(){
   const url=`/api/export_template_excel?niveau=${state.niveau}`;
   const a=document.createElement('a');a.href=url;a.download=`template_niveau${state.niveau}.xlsx`;a.click();
   toast('📋 Modèle téléchargé !');
+}
+
+// ── DOSSIER PDF ───────────────────────────────────────────
+const NIV_COLORS={1:{bg:'#e8f5e9',border:'#2e7d32',text:'#1b5e20',label:'🟢 Niveau 1'},2:{bg:'#f3e5f5',border:'#6a1b9a',text:'#4a148c',label:'🟣 Niveau 2'},3:{bg:'#e8eaf6',border:'#1a2e5a',text:'#0d1a38',label:'🔵 Niveau 3'}};
+
+async function loadPdfFolder(){
+  const box=document.getElementById('pdf-folder-content');
+  box.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">⏳ Chargement…</div>';
+  try{
+    const res=await fetch('/api/list_pdfs');
+    const data=await res.json();
+    let total=0;
+    [1,2,3].forEach(n=>{total+=(data[n]||[]).length;});
+    if(total===0){
+      box.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">📭 Aucun PDF sauvegardé pour l\'instant.<br><small>Les PDFs sont générés automatiquement à chaque enregistrement d\'élève.</small></div>';
+      return;
+    }
+    let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">';
+    [1,2,3].forEach(n=>{
+      const files=data[n]||[];
+      const c=NIV_COLORS[n];
+      html+=`<div style="border:2px solid ${c.border};border-radius:10px;overflow:hidden">
+        <div style="background:${c.border};color:#fff;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-weight:800">${c.label} — ${files.length} PDF</span>
+          ${files.length?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)" onclick="downloadZip(${n})">⬇️ ZIP</button>`:''}
+        </div>
+        <div style="background:${c.bg};padding:.75rem;max-height:260px;overflow-y:auto">`;
+      if(!files.length){
+        html+=`<div style="text-align:center;color:${c.text};padding:1rem;font-size:12px">Aucun PDF pour ce niveau</div>`;
+      }else{
+        files.forEach(f=>{
+          const nom=f.replace('.pdf','').replace(/_/g,' ');
+          html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;margin-bottom:4px;background:#fff;border:1px solid ${c.border}30">
+            <span style="font-size:12px;font-weight:600;color:${c.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px" title="${f}">📄 ${nom}</span>
+            <a href="/api/get_pdf/${n}/${encodeURIComponent(f)}" download="${f}" class="btn btn-sm btn-outline" style="font-size:11px;padding:3px 8px;flex-shrink:0">⬇️</a>
+          </div>`;
+        });
+      }
+      html+=`</div></div>`;
+    });
+    html+='</div>';
+    html+=`<div style="margin-top:1rem;padding:.75rem 1rem;background:#fff3e0;border-radius:8px;font-size:12px;color:#e65100">
+      ⚠️ <strong>Attention :</strong> Les fichiers sont stockés temporairement sur le serveur (Render free tier).
+      Téléchargez le ZIP régulièrement pour garder une copie locale.
+    </div>`;
+    box.innerHTML=html;
+  }catch(ex){
+    box.innerHTML=`<div style="color:red;padding:1rem">Erreur: ${ex.message}</div>`;
+  }
+}
+
+async function downloadZip(niveau){
+  toast(niveau===0?'⬇️ Téléchargement de tous les PDFs…':`⬇️ Téléchargement ZIP Niveau ${niveau}…`);
+  const a=document.createElement('a');
+  a.href=`/api/download_zip/${niveau}`;
+  a.download=niveau===0?'bulletins_tous_niveaux.zip':`bulletins_niv${niveau}.zip`;
+  a.click();
 }
 
 // ── IMPORT ────────────────────────────────────────────────
