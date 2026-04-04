@@ -157,8 +157,18 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   .stat-card .val{font-size:16px}
   .stat-card .lbl{font-size:10px}
 
-  /* Main content offset for fixed niv-bar */
+  /* Main doit scroller sur mobile */
+  .main{overflow-y:auto !important}
+
+  /* Offset pour la barre niveau fixe (saisie seulement) */
   #tab-saisie{padding-top:52px}
+
+  /* Import/Export: plein écran scrollable */
+  #tab-import,#tab-export{
+    min-height:calc(100vh - 56px - 70px);
+    overflow-y:auto;
+    padding:1rem 1rem 80px 1rem;
+  }
 
   /* Table horizontally scrollable */
   .eleves-table-wrap{padding:.75rem;overflow-x:auto}
@@ -963,16 +973,21 @@ function toast(msg,type='success'){
 
 // ── NAVIGATION ──────────────────────────────────────────────
 function showTab(tab){
-  ['saisie','import','export'].forEach(t=>{
-    document.getElementById(`tab-${t}`).style.display=t===tab?'flex':'none';
-    if(t==='saisie')document.getElementById(`tab-${t}`).style.display=t===tab?'flex':'none';
-  });
-  document.getElementById('tab-saisie').style.display=tab==='saisie'?'flex':'none';
-  document.getElementById('tab-import').style.display=tab==='import'?'block':'none';
-  document.getElementById('tab-export').style.display=tab==='export'?'block':'none';
+  document.getElementById('tab-saisie').style.display = tab==='saisie' ? 'flex' : 'none';
+  document.getElementById('tab-import').style.display  = tab==='import'  ? 'block' : 'none';
+  document.getElementById('tab-export').style.display  = tab==='export'  ? 'block' : 'none';
+  // Sidebar active state
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
     b.classList.toggle('active',['saisie','import','export'][i]===tab);
   });
+  // Mobile nav active state
+  ['saisie','import','export'].forEach(t=>{
+    const btn=document.getElementById(`mnav-${t}`);
+    if(btn) btn.classList.toggle('active', t===tab);
+  });
+  // Show/hide mobile niv bar only on saisie tab
+  const nivBar=document.getElementById('mobile-niv-bar');
+  if(nivBar) nivBar.style.display = tab==='saisie' ? '' : 'none';
 }
 document.getElementById('tab-saisie').style.display='flex';
 document.getElementById('tab-saisie').style.flexDirection='column';
