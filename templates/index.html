@@ -344,9 +344,17 @@ table.eleves-table tr:hover td{background:var(--n3l)}
 <!-- ── FORM MODAL ── -->
 <div class="form-overlay" id="form-overlay">
 <div class="form-modal" id="form-modal">
-  <div class="form-header">
-    <h3 id="form-title">Nouvel élève</h3>
-    <button class="close-btn" onclick="closeForm()">✕</button>
+  <div class="form-header" style="flex-direction:column;align-items:stretch;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h3 id="form-title">Nouvel élève</h3>
+      <button class="close-btn" onclick="closeForm()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:12px;font-weight:700;color:var(--muted)">NIVEAU :</span>
+      <button id="fniv-1" onclick="changeFormNiveau(1)" style="padding:5px 14px;border-radius:20px;border:2px solid var(--n1);background:var(--n1);color:#fff;font-size:12px;font-weight:700;cursor:pointer">🟢 Niv 1</button>
+      <button id="fniv-2" onclick="changeFormNiveau(2)" style="padding:5px 14px;border-radius:20px;border:2px solid var(--n2l);background:var(--n2l);color:var(--n2d);font-size:12px;font-weight:700;cursor:pointer">🟣 Niv 2</button>
+      <button id="fniv-3" onclick="changeFormNiveau(3)" style="padding:5px 14px;border-radius:20px;border:2px solid var(--n3l);background:var(--n3l);color:var(--n3d);font-size:12px;font-weight:700;cursor:pointer">🔵 Niv 3</button>
+    </div>
   </div>
   <div class="form-body" id="form-body">
     <!-- Generated dynamically -->
@@ -1042,12 +1050,43 @@ function setMobileNav(tab){
 }
 
 // ── FORM ──────────────────────────────────────────────────
+function changeFormNiveau(n){
+  // Save current form data partially (nom/classe/prof) to not lose basic info
+  const nomVal = document.getElementById('f-nom')?.value || '';
+  const classeVal = document.getElementById('f-classe')?.value || '';
+  const profVal = document.getElementById('f-prof')?.value || '';
+  const nomArVal = document.getElementById('f-nom-ar')?.value || '';
+  setNiveau(n);
+  openForm(null);
+  // Restore basic fields
+  setTimeout(()=>{
+    if(document.getElementById('f-nom')) document.getElementById('f-nom').value = nomVal;
+    if(document.getElementById('f-classe')) document.getElementById('f-classe').value = classeVal;
+    if(document.getElementById('f-prof')) document.getElementById('f-prof').value = profVal;
+    if(document.getElementById('f-nom-ar')) document.getElementById('f-nom-ar').value = nomArVal;
+  }, 50);
+}
+
+function updateFormNivButtons(){
+  const nv = state.niveau;
+  const styles = {
+    1: {active:'background:var(--n1);color:#fff;border-color:var(--n1)', inactive:'background:var(--n1l);color:var(--n1d);border-color:var(--n1l)'},
+    2: {active:'background:var(--n2);color:#fff;border-color:var(--n2)', inactive:'background:var(--n2l);color:var(--n2d);border-color:var(--n2l)'},
+    3: {active:'background:var(--n3);color:#fff;border-color:var(--n3)', inactive:'background:var(--n3l);color:var(--n3d);border-color:var(--n3l)'},
+  };
+  [1,2,3].forEach(n=>{
+    const btn = document.getElementById(`fniv-${n}`);
+    if(btn) btn.style.cssText = `padding:5px 14px;border-radius:20px;border:2px solid;font-size:12px;font-weight:700;cursor:pointer;${n===nv?styles[n].active:styles[n].inactive}`;
+  });
+}
+
 function openForm(idx=null){
   state.editIdx=idx;
   const e=idx!==null?state.eleves[state.niveau][idx]:{};
   const mats=MATIERES[state.niveau];
   const nv=state.niveau; const col=NVCOL[nv];
   document.getElementById('form-title').textContent=idx!==null?`Modifier — ${e.nom||''}`:'Nouvel élève';
+  updateFormNivButtons();
 
   let html=`
   <div class="form-section">
