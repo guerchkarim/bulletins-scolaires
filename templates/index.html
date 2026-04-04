@@ -976,9 +976,10 @@ function showTab(tab){
   document.getElementById('tab-saisie').style.display = tab==='saisie' ? 'flex' : 'none';
   document.getElementById('tab-import').style.display  = tab==='import'  ? 'block' : 'none';
   document.getElementById('tab-export').style.display  = tab==='export'  ? 'block' : 'none';
-  // Sidebar active state
-  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['saisie','import','export'][i]===tab);
+  // Sidebar active state — basé sur l'attribut onclick, pas l'index
+  document.querySelectorAll('.nav-btn[onclick*="showTab"]').forEach(b=>{
+    const m=b.getAttribute('onclick').match(/showTab\('(\w+)'\)/);
+    if(m) b.classList.toggle('active', m[1]===tab);
   });
   // Mobile nav active state
   ['saisie','import','export'].forEach(t=>{
