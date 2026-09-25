@@ -24,6 +24,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .app-header{background:linear-gradient(135deg,var(--n3) 0%,#2d4a8a 100%);color:#fff;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px rgba(0,0,0,.2)}
 .app-header .logo{display:flex;align-items:center;gap:12px}
 .app-header .logo img{height:52px;width:52px;border-radius:50%;object-fit:contain;background:#fff;padding:3px;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.app-header .logo .logo-secours{height:52px;width:52px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:26px}
 .app-header h1{font-size:18px;font-weight:800;letter-spacing:.3px}
 .app-header h1 span{color:var(--gold);font-family:'Tajawal',sans-serif}
 
@@ -142,6 +143,7 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   /* Header mobile */
   .app-header{padding:0 1rem;height:56px}
   .app-header .logo img{height:38px;width:38px}
+  .app-header .logo .logo-secours{height:38px;width:38px;font-size:20px}
   .app-header h1{font-size:13px}
   .app-header h1 span{font-size:12px}
 
@@ -220,12 +222,23 @@ table.eleves-table tr:hover td{background:var(--n3l)}
   .empty-state .icon{font-size:40px}
 }
 </style>
+<script>
+/* Le logo est intégré à la page (data URI). Si jamais il manquait, on retombe
+   sur le fichier statique, puis sur un emblème : jamais d'icône cassée. */
+function logoDeSecours(img){
+  if(!img.dataset.secours){ img.dataset.secours='1'; img.src='/static/logo.png?v=4'; return; }
+  var secours=document.createElement('span');
+  secours.className='logo-secours'; secours.textContent='🕌';
+  secours.title="École Mosquée de Castelsarrasin";
+  img.replaceWith(secours);
+}
+</script>
 </head>
 <body>
 
 <header class="app-header">
   <div class="logo">
-    <img src="/static/logo.png?v=3" alt="logo"/>
+    <img src="{{ logo_uri or '/static/logo.png?v=4' }}" alt="École Mosquée de Castelsarrasin" onerror="logoDeSecours(this)"/>
     <h1>Bulletins Scolaires &nbsp;<span>مَدْرَسَةُ مَسْجِدِ كَاسْتِيلْ سَارَزَان</span></h1>
   </div>
   <div style="font-size:12px;opacity:.7">2025-2026</div>

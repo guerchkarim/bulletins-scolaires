@@ -44,6 +44,34 @@ pdfmetrics.registerFont(TTFont('DejaVuBold',DEJAVU_B))
 LOGO_PATH  = str(BASE / 'static' / 'logo.png')
 STAMP_PATH = str(BASE / 'static' / 'stamp.png')
 
+# ── Logo embarqué dans la page d'accueil ───────────────────
+# Le logo de l'école est inséré directement dans le HTML (data URI) plutôt que
+# chargé par une seconde requête : c'est cette requête qui échouait au réveil de
+# l'hébergeur ou sur une connexion lente, et le logo « disparaissait ». Inséré
+# dans la page, il s'affiche dès que la page s'affiche.
+
+def logo_en_data_uri(chemin, cote=192):
+    """Renvoie le logo réduit en data URI, ou une chaîne vide s'il est illisible."""
+    try:
+        from PIL import Image
+        with Image.open(chemin) as img:
+            img = img.convert('RGBA')
+            img.thumbnail((cote, cote), Image.LANCZOS)
+            # Palette de 128 couleurs : l'emblème reste net et la page ne
+            # s'alourdit que d'une dizaine de kilo-octets.
+            img = img.convert('P', palette=Image.ADAPTIVE, colors=128)
+            tampon = io.BytesIO()
+            img.save(tampon, format='PNG', optimize=True)
+            donnees = tampon.getvalue()
+    except Exception:
+        try:
+            donnees = Path(chemin).read_bytes()
+        except OSError:
+            return ''
+    return 'data:image/png;base64,' + base64.b64encode(donnees).decode('ascii')
+
+LOGO_URI = logo_en_data_uri(LOGO_PATH)
+
 # ── Palette par niveau ─────────────────────────────────────
 PALETTES = {
     1: {'main': colors.HexColor('#2e7d32'), 'dark': colors.HexColor('#1b5e20'), 'th': colors.HexColor('#388e3c')},
@@ -367,7 +395,7 @@ def generate_excel(eleves_par_niveau):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', logo_uri=LOGO_URI)
 
 @app.route('/api/generate_pdf', methods=['POST'])
 def generate_pdf():
