@@ -276,6 +276,7 @@ table.eleves-table tr:hover td{background:var(--n3l)}
     <button class="nav-btn active" onclick="showTab('saisie')"><span class="icon">✏️</span> Saisie des bulletins</button>
     <button class="nav-btn" onclick="showTab('import')"><span class="icon">📂</span> Importer un fichier</button>
     <button class="nav-btn" onclick="showTab('export')"><span class="icon">📤</span> Exporter</button>
+    <button class="nav-btn" onclick="showTab('supports')"><span class="icon">📘</span> Supports</button>
 
     <div class="divider"></div>
     <h2>Niveau actif</h2>
@@ -370,6 +371,16 @@ table.eleves-table tr:hover td{background:var(--n3l)}
     </div>
 
     <!-- EXPORT TAB -->
+    <!-- ── SUPPORTS PÉDAGOGIQUES ─────────────────────────────── -->
+    <div id="tab-supports" style="display:none;padding:2rem">
+      <h2 style="margin-bottom:.25rem">Supports pédagogiques</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:1.5rem">
+        Les documents de classe, rangés par niveau et par compétence.
+        Niveau affiché : <strong id="sup-niv-lbl">1</strong>.
+      </p>
+      <div id="sup-contenu"></div>
+    </div>
+
     <div id="tab-export" style="display:none;padding:2rem">
       <h2 style="margin-bottom:1.5rem">Impression &amp; Export</h2>
 
@@ -1061,10 +1072,96 @@ function toast(msg,type='success'){
 }
 
 // ── NAVIGATION ──────────────────────────────────────────────
+// ── Supports pédagogiques ─────────────────────────────────
+// Le cahier d'écriture : un seul PDF de 86 pages (couverture, sommaire,
+// puis trois pages par lettre). Les numéros ci-dessous sont la première
+// page de chaque lettre — les liens ouvrent le PDF directement dessus.
+const CAHIER_LETTRES = [
+  ['ا','alif',3],
+  ['ب','bâ',6],
+  ['ت','tâ',9],
+  ['ث','thâ',12],
+  ['ج','jîm',15],
+  ['ح','ḥâ',18],
+  ['خ','khâ',21],
+  ['د','dâl',24],
+  ['ذ','dhâl',27],
+  ['ر','râ',30],
+  ['ز','zây',33],
+  ['س','sîn',36],
+  ['ش','chîn',39],
+  ['ص','ṣâd',42],
+  ['ض','ḍâd',45],
+  ['ط','ṭâ',48],
+  ['ظ','ẓâ',51],
+  ['ع','ayn',54],
+  ['غ','ghayn',57],
+  ['ف','fâ',60],
+  ['ق','qâf',63],
+  ['ك','kâf',66],
+  ['ل','lâm',69],
+  ['م','mîm',72],
+  ['ن','noûn',75],
+  ['ه','hâ',78],
+  ['و','wâw',81],
+  ['ي','yâ',84]
+];
+
+const SUPPORTS = {
+  1: [{
+    matiere: 'Arabe', competenceAr: 'الْخَطُّ', competenceFr: "L'écriture",
+    titre: "Cahier d'écriture — l'alphabet arabe",
+    detail: "28 lettres, 84 pages. Pour chaque lettre : les quatre formes, les signes (voyelles, madd, tanwîn, chadda, soukoûn), puis huit mots illustrés de photographies.",
+    fichier: '/static/supports/cahier-ecriture-alphabet-arabe.pdf',
+    lettres: CAHIER_LETTRES,
+  }],
+  2: [],
+  3: [],
+};
+
+function renderSupports(){
+  const niv = state.niveau;
+  const lbl = document.getElementById('sup-niv-lbl');
+  if(lbl) lbl.textContent = niv;
+  const hote = document.getElementById('sup-contenu');
+  if(!hote) return;
+  const liste = SUPPORTS[niv] || [];
+  if(!liste.length){
+    hote.innerHTML = `<div style="background:#fff;border:1px dashed var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;color:var(--muted)">
+      <div style="font-size:34px;margin-bottom:8px">📭</div>
+      <div style="font-weight:700;margin-bottom:4px">Aucun support pour le niveau ${niv}</div>
+      <div style="font-size:12px">Les documents ajoutés pour ce niveau apparaîtront ici.</div>
+    </div>`;
+    return;
+  }
+  hote.innerHTML = liste.map(s => {
+    const tuiles = (s.lettres || []).map(([ar, nom, page]) =>
+      `<a href="${s.fichier}#page=${page}" target="_blank" rel="noopener"
+          style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:inherit"
+          title="${nom} — pages ${page} à ${page+2}">
+         <span style="font-size:26px;line-height:1;color:var(--n1)">${ar}</span>
+         <span style="font-size:11px;font-weight:700">${nom}</span>
+         <span style="font-size:10px;color:var(--muted)">p. ${page}–${page+2}</span>
+       </a>`).join('');
+    return `<div style="background:var(--n1);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div style="color:#fff;flex:1;min-width:200px">
+          <div style="font-size:11px;opacity:.85;letter-spacing:.08em;text-transform:uppercase">${s.matiere} · ${s.competenceAr} — ${s.competenceFr}</div>
+          <div style="font-weight:800;font-size:15px;margin-top:2px">${s.titre}</div>
+          <div style="font-size:11px;opacity:.85;margin-top:4px;max-width:46rem">${s.detail}</div>
+        </div>
+        <a class="btn btn-gold" href="${s.fichier}" target="_blank" rel="noopener" style="white-space:nowrap;text-decoration:none">📘 Ouvrir le cahier</a>
+        <a class="btn" href="${s.fichier}" download style="background:#fff;color:var(--n1);font-weight:700;white-space:nowrap;text-decoration:none">⬇️ Télécharger</a>
+      </div>
+      ${tuiles ? `<p style="font-size:12px;color:var(--muted);margin:0 0 .6rem">Ouvrir le cahier directement à la lettre voulue :</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px">${tuiles}</div>` : ''}`;
+  }).join('');
+}
+
 function showTab(tab){
   document.getElementById('tab-saisie').style.display = tab==='saisie' ? 'flex' : 'none';
   document.getElementById('tab-import').style.display  = tab==='import'  ? 'block' : 'none';
   document.getElementById('tab-export').style.display  = tab==='export'  ? 'block' : 'none';
+  document.getElementById('tab-supports').style.display = tab==='supports' ? 'block' : 'none';
   // Sidebar active state — basé sur l'attribut onclick, pas l'index
   document.querySelectorAll('.nav-btn[onclick*="showTab"]').forEach(b=>{
     const m=b.getAttribute('onclick').match(/showTab\('(\w+)'\)/);
@@ -1080,6 +1177,7 @@ function showTab(tab){
   if(nivBar) nivBar.style.display = tab==='saisie' ? '' : 'none';
   // Auto-charger le dossier PDF quand on ouvre l'onglet Export
   if(tab==='export') loadPdfFolder();
+  if(tab==='supports') renderSupports();
 }
 document.getElementById('tab-saisie').style.display='flex';
 document.getElementById('tab-saisie').style.flexDirection='column';
@@ -1094,6 +1192,9 @@ function setNiveau(n){
   // Sync mobile niv bar
   document.querySelectorAll('#mobile-niv-bar .niv-btn').forEach(b=>b.classList.toggle('active',+b.dataset.niv===n));
   renderTable();
+  // L'onglet Supports suit le niveau actif s'il est ouvert.
+  const sup=document.getElementById('tab-supports');
+  if(sup && sup.style.display!=='none') renderSupports();
 }
 
 // ── TABLE ──────────────────────────────────────────────────

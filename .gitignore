@@ -9,3 +9,6 @@ exports/
 .env
 venv/
 .venv/
+
+# Les supports pédagogiques sont versionnés (le *.pdf ci-dessus vise les bulletins générés).
+!static/supports/*.pdf
